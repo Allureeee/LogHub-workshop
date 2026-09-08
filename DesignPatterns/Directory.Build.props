@@ -1,0 +1,19 @@
+<Project>
+
+  <!-- Общие настройки для всех проектов решения.
+       Держим их в одном месте, чтобы TFM не разъезжался между проектами:
+       именно это было главной поломкой в исходном репозитории. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <InvariantGlobalization>true</InvariantGlobalization>
+
+    <!-- Учебный код должен собираться без предупреждений.
+         Отключать их директивами в коде нельзя — правьте причину. -->
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+
+</Project>

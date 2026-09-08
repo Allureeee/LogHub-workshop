@@ -1,0 +1,27 @@
+<Project>
+
+  <!-- Централизованное управление версиями пакетов.
+       Версии задаются только здесь; в csproj остаются одни имена.
+
+       Проверить актуальность:
+           dotnet list package - -outdated
+       Обновить версию — правится одна строка ниже. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Демо «ioc» и «ioc-lifetimes», занятие 3.
+         Версия совпадает с мажорной версией TFM. -->
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Тесты">
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="MSTest" Version="3.10.3" />
+    <PackageVersion Include="Moq" Version="4.20.72" />
+    <PackageVersion Include="AutoFixture" Version="4.18.1" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+  </ItemGroup>
+
+</Project>

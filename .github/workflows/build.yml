@@ -1,0 +1,34 @@
+name: build
+
+# Сборка и тесты на каждый push и каждый Pull Request.
+# Лабораторная работа с красным CI на проверку не принимается.
+
+on:
+  push:
+    branches: [ main, develop, 'feature/**' ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Установка .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Восстановление пакетов
+        run: dotnet restore DesignPatterns/DesignPatterns.sln
+
+      - name: Сборка
+        run: dotnet build DesignPatterns/DesignPatterns.sln --no-restore --configuration Release
+
+      - name: Тесты
+        run: dotnet test DesignPatterns/DesignPatterns.sln --no-build --configuration Release --verbosity normal
+
+      - name: Проверка, что демо запускается
+        run: dotnet run --project DesignPatterns/Implementation --configuration Release --no-build -- --list
