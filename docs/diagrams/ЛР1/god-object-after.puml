@@ -67,24 +67,35 @@ class LogConfiguration {
     +Format : string
     +Connection : string
 }
+class SinkNameAttribute {
+    +Name : string
+}
 class LogRecord {
     +Date : DateTime
     +Severity : string
     +Message : string
 }
+class ProcessingResult {
+    +Written : int
+    +Skipped : int
+}
 ILogSink <|.. ConsoleLogSink
 ILogSink <|.. FileLogSink
 ILogSink <|.. DatabaseLogSink
-LogProcessingModule --> LogFileReader
-LogProcessingModule --> LogParser
-LogProcessingModule --> SeverityFilter
-LogProcessingModule --> LogFormatter
-LogProcessingModule --> ILogSink
+LogProcessingModule --> LogFileReader : использует
+LogProcessingModule --> LogParser : использует
+LogProcessingModule --> SeverityFilter : использует
+LogProcessingModule --> LogFormatter : использует
+LogProcessingModule --> ILogSink : использует
+LogFileReader --> LogRecord
 LogParser --> LogRecord
 SeverityFilter --> LogRecord
 LogFormatter --> LogRecord
-LogSinkFactory --> ILogSink
-LogSinkFactory --> LogConfiguration
+LogProcessingModule --> ProcessingResult
 ConfigReader --> LogConfiguration
-
+LogSinkFactory --> LogConfiguration
+LogSinkFactory --> ILogSink
+ConsoleLogSink --> SinkNameAttribute
+FileLogSink --> SinkNameAttribute
+DatabaseLogSink --> SinkNameAttribute
 @enduml

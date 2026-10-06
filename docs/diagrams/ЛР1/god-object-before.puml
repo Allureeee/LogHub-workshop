@@ -1,5 +1,4 @@
 @startuml
-
 class LogProcessingModule {
     -_configPath : string
     -_config : Dictionary<string, string>
@@ -7,7 +6,6 @@ class LogProcessingModule {
     -_fileWriter : StreamWriter
     -_written : int
     -_skipped : int
-
     -LoadConfig()
     -OpenSinks()
     -ParseLine(line : string) : LogRecord
@@ -15,16 +13,6 @@ class LogProcessingModule {
     -Write(record : LogRecord)
     +Run(logPath : string)
     -SeverityToInt(severity : string) : int
-}
-interface ILogSink {
-    +Write(text : string)
-    +Flush()
-    +BeginTransaction()
-    +Commit()
-    +Rollback()
-    +Rotate()
-    +GetFileSize() : long
-    +SetConsoleColor(color : ConsoleColor)
 }
 class LogRecord {
     +Date : DateTime
@@ -38,11 +26,12 @@ class FakeDbConnection {
     +Execute(...)
     +Close()
 }
-
-class StreamWriter
-
+class StreamWriter {
+    +WriteLine(...)
+    +Flush()
+    +Dispose()
+}
 LogProcessingModule --> LogRecord : создаёт
 LogProcessingModule --> FakeDbConnection : создаёт
 LogProcessingModule --> StreamWriter : создаёт
-
 @enduml
