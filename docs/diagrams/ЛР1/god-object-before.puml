@@ -1,0 +1,37 @@
+@startuml
+class LogProcessingModule {
+    -_configPath : string
+    -_config : Dictionary<string, string>
+    -_connection : FakeDbConnection
+    -_fileWriter : StreamWriter
+    -_written : int
+    -_skipped : int
+    -LoadConfig()
+    -OpenSinks()
+    -ParseLine(line : string) : LogRecord
+    -Format(record : LogRecord) : string
+    -Write(record : LogRecord)
+    +Run(logPath : string)
+    -SeverityToInt(severity : string) : int
+}
+class LogRecord {
+    +Date : DateTime
+    +Severity : string
+    +Message : string
+}
+class FakeDbConnection {
+    -_connectionString : string
+    -_open : bool
+    +Open()
+    +Execute(...)
+    +Close()
+}
+class StreamWriter {
+    +WriteLine(...)
+    +Flush()
+    +Dispose()
+}
+LogProcessingModule --> LogRecord : создаёт
+LogProcessingModule --> FakeDbConnection : создаёт
+LogProcessingModule --> StreamWriter : создаёт
+@enduml

@@ -1,0 +1,101 @@
+@startuml
+
+class LogProcessingModule {
+    -_reader : LogFileReader
+    -_parser : LogParser
+    -_filter : SeverityFilter
+    -_formatter : LogFormatter
+    -_sink : ILogSink
+    +LogProcessingModule(
+        reader : LogFileReader,
+        parser : LogParser,
+        filter : SeverityFilter,
+        formatter : LogFormatter,
+        sink : ILogSink
+    )
+    +Run(logPath : string) : ProcessingResult
+    +Run(lines : IEnumerable<string>) : ProcessingResult
+}
+class LogFileReader {
+    +Read(path : string) : IEnumerable<string>
+}
+class LogParser {
+    +Parse(line : string) : LogRecord?
+}
+class SeverityFilter {
+    -_minimumSeverity : int
+    +SeverityFilter(minimumSeverity : string)
+    +ShouldInclude(record : LogRecord) : bool
+}
+class LogFormatter {
+    -_format : string
+    +LogFormatter(format : string)
+    +Format(record : LogRecord) : string
+}
+interface ILogSink {
+    +Name : string
+    +Write(record : LogRecord, text : string)
+    +Dispose()
+}
+class ConsoleLogSink {
+    +Name : string
+    +Write(record : LogRecord, text : string)
+    +Dispose()
+}
+class FileLogSink {
+    -_writer : StreamWriter
+    +Name : string
+    +Write(record : LogRecord, text : string)
+    +Dispose()
+}
+class DatabaseLogSink {
+    -_connectionString : string
+    -_open : bool
+    +Name : string
+    +Write(record : LogRecord, text : string)
+    +Dispose()
+}
+class LogSinkFactory {
+    +Create(configuration : LogConfiguration) : ILogSink
+}
+class ConfigReader {
+    +Load(path : string) : LogConfiguration
+}
+class LogConfiguration {
+    +Sink : string
+    +MinSeverity : string
+    +Format : string
+    +Connection : string
+}
+class SinkNameAttribute {
+    +Name : string
+}
+class LogRecord {
+    +Date : DateTime
+    +Severity : string
+    +Message : string
+}
+class ProcessingResult {
+    +Written : int
+    +Skipped : int
+}
+ILogSink <|.. ConsoleLogSink
+ILogSink <|.. FileLogSink
+ILogSink <|.. DatabaseLogSink
+LogProcessingModule --> LogFileReader : использует
+LogProcessingModule --> LogParser : использует
+LogProcessingModule --> SeverityFilter : использует
+LogProcessingModule --> LogFormatter : использует
+LogProcessingModule --> ILogSink : использует
+LogFileReader --> LogRecord
+LogParser --> LogRecord
+SeverityFilter --> LogRecord
+LogFormatter --> LogRecord
+LogProcessingModule --> ProcessingResult
+ConfigReader --> LogConfiguration
+LogSinkFactory --> LogConfiguration
+LogSinkFactory --> ILogSink
+ConsoleLogSink --> SinkNameAttribute
+FileLogSink --> SinkNameAttribute
+DatabaseLogSink --> SinkNameAttribute
+@enduml
