@@ -1,0 +1,37 @@
+@startuml
+
+interface ILogImporter {
+    +GetLogs() : List<LogEntry>
+}
+class FileLogImporter {
+    +GetLogs() : List<LogEntry>
+}
+class SystemLogImporter {
+    +GetLogs() : List<LogEntry>
+}
+class LogProcessor {
+    -_logImporter : ILogImporter
+    +LogProcessor(logImporter : ILogImporter)
+    +ProcessLogs()
+    -SaveLogEntry(logEntry : LogEntry)
+}
+class LogEntry {
+    +Message : string
+    +Date : DateTime
+    +Severity : LogSeverity
+    +Parse(line : string) : LogEntry
+    +CompareTo(obj : object) : int
+}
+enum LogSeverity {
+    Debug
+    Info
+    Warning
+    Error
+    Critical
+}
+ILogImporter <|.. FileLogImporter
+ILogImporter <|.. SystemLogImporter
+LogProcessor --> ILogImporter : использует
+LogProcessor --> LogEntry : обрабатывает
+LogEntry --> LogSeverity
+@enduml
