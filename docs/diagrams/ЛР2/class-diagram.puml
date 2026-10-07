@@ -1,0 +1,99 @@
+@startuml
+
+interface IConfigService {
+    +GetValue(key : string) : string?
+    +SetValue(key : string, value : string)
+}
+class ClassicConfigService {
+    -_instance : ClassicConfigService?
+    -_values : Dictionary<string, string>
+    -ClassicConfigService()
+    +Instance() : ClassicConfigService
+    +GetValue(key : string) : string?
+    +SetValue(key : string, value : string)
+}
+class LazyConfigService {
+    -_instance : Lazy<LazyConfigService>
+    -_values : Dictionary<string, string>
+    -LazyConfigService()
+    +Instance() : LazyConfigService
+    +GetValue(key : string) : string?
+    +SetValue(key : string, value : string)
+}
+class ConfigService {
+    -_values : Dictionary<string, string>
+    +ConfigService(configuration : LogConfiguration)
+    +GetValue(key : string) : string?
+    +SetValue(key : string, value : string)
+}
+class LogConfiguration {
+    +Sink : string
+    +MinSeverity : string
+    +Format : string
+    +Connection : string
+    +LogPath : string
+}
+class ConfigReader {
+    +Load(path : string) : LogConfiguration
+}
+class LogHubApplication {
+    -_configService : IConfigService
+    -_processingModule : LogProcessingModule
+    +LogHubApplication(configService : IConfigService, processingModule : LogProcessingModule)
+    +Run() : ProcessingResult
+}
+class LogProcessingModule {
+    -_reader : LogFileReader
+    -_parser : LogParser
+    -_filter : SeverityFilter
+    -_formatter : LogFormatter
+    -_sink : ILogSink
+    +LogProcessingModule(...)
+    +Run(logPath : string) : ProcessingResult
+}
+class ProcessingResult {
+    +Written : int
+    +Skipped : int
+}
+class LogFileReader
+class LogParser
+class SeverityFilter
+class LogFormatter
+
+interface ILogSink {
+    +Name : string
+    +Write(record : LogRecord, text : string)
+    +Dispose()
+}
+class ConsoleLogSink
+class FileLogSink
+class Program <<composition root>>
+
+IConfigService <|.. ClassicConfigService
+IConfigService <|.. LazyConfigService
+IConfigService <|.. ConfigService
+
+ILogSink <|.. ConsoleLogSink
+ILogSink <|.. FileLogSink
+
+ConfigReader --> LogConfiguration
+ConfigService --> LogConfiguration
+
+LogHubApplication --> IConfigService
+LogHubApplication --> LogProcessingModule
+
+LogProcessingModule --> LogFileReader
+LogProcessingModule --> LogParser
+LogProcessingModule --> SeverityFilter
+LogProcessingModule --> LogFormatter
+LogProcessingModule --> ILogSink
+LogProcessingModule --> ProcessingResult
+
+Program ..> ConfigReader
+Program ..> LogConfiguration
+Program ..> IConfigService
+Program ..> LogProcessingModule
+Program ..> ILogSink
+Program ..> LogHubApplication
+
+@enduml
