@@ -12,7 +12,8 @@ public class ConfigReader
             ["sink"] = "console",
             ["minSeverity"] = "Info",
             ["format"] = "plain",
-            ["connection"] = "local"
+            ["connection"] = "local",
+            ["logPath"] = "sample.log"
         };
         if (!File.Exists(path))
         {
@@ -40,7 +41,8 @@ public class ConfigReader
             Sink = values["sink"],
             MinSeverity = values["minSeverity"],
             Format = values["format"],
-            Connection = values["connection"]
+            Connection = values["connection"],
+            LogPath = values["logPath"]
         };
     }
 }
