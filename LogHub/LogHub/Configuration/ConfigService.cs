@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-
 namespace LogHub.Configuration;
 public class ConfigService : IConfigService
 {
@@ -9,6 +8,8 @@ public class ConfigService : IConfigService
         _values = new Dictionary<string, string>
         {
             ["sink"] = configuration.Sink,
+            ["importer"] = configuration.Importer,
+            ["outputPath"] = configuration.OutputPath,
             ["minSeverity"] = configuration.MinSeverity,
             ["format"] = configuration.Format,
             ["connection"] = configuration.Connection,

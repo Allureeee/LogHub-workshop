@@ -1,0 +1,55 @@
+@startuml "import.puml"
+left to right direction
+skinparam classAttributeIconSize 0
+interface ILogImporter {
+  +Import(): IEnumerable<ImportItem>
+}
+abstract class LogImporterBase {
+  +Import(): IEnumerable<ImportItem>
+  #Open(): TextReader
+  {abstract} #Read(reader): string
+  {abstract} #Parse(line): LogRecord
+  #Validate(record): bool
+  #Close(reader): void
+  #Release(reader): void
+}
+class MixedLogImporter {
+  #Validate(record): bool
+}
+class JsonLogImporter
+class InMemoryLogImporter
+interface ITextSource {
+  +Open(): TextReader
+}
+class FileTextSource
+class InMemoryTextSource
+class LogParser {
+  +Parse(line): LogRecord
+  +ParseJson(line): LogRecord
+}
+class LogProcessor {
+  +Run(): ProcessingResult
+  +ChangeImporter(importer): void
+}
+class ImportItem <<record>>
+class LogRecord
+ILogImporter <|.. LogImporterBase
+LogImporterBase <|-- MixedLogImporter
+LogImporterBase <|-- JsonLogImporter
+LogImporterBase <|-- InMemoryLogImporter
+LogImporterBase --> ITextSource
+ITextSource <|.. FileTextSource
+ITextSource <|.. InMemoryTextSource
+MixedLogImporter --> LogParser
+JsonLogImporter --> LogParser
+InMemoryLogImporter --> LogParser
+LogProcessor --> ILogImporter : replaceable strategy
+ILogImporter ..> ImportItem
+ImportItem --> "0..1" LogRecord
+note bottom of LogImporterBase
+  Import is non-virtual in C#.
+  Read and Parse are abstract.
+  Only MixedLogImporter overrides Validate.
+  try/finally owns the reader lifetime.
+end note
+@enduml

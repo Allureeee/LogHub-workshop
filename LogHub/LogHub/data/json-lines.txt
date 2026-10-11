@@ -1,0 +1,6 @@
+{"date":"2026-10-07T12:00:00","level":"Debug","message":"JSON record 1"}
+{"date":"2026-10-07T12:01:00","level":"Info","message":"JSON record 2"}
+{"date":"2026-10-07T12:02:00","level":"Warning","message":"JSON record 3"}
+{"date":"2026-10-07T12:03:00","level":"Error","message":"JSON record 4"}
+{"date":"2026-10-07T12:04:00","level":"Critical","message":"JSON record 5"}
+invalid json
