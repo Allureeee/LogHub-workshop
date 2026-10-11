@@ -1,0 +1,53 @@
+@startuml "graph.puml"
+left to right direction
+skinparam classAttributeIconSize 0
+interface "IEnumerable<Node>" as EnumerableNode
+interface "IEnumerator<Node>" as EnumeratorNode
+class Node <<record>> {
+  +Name: string
+}
+class DependencyGraph {
+  +Nodes: IReadOnlyList<Node>
+  +DepthFirst(root): IEnumerable<Node>
+  +BreadthFirst(root): IEnumerable<Node>
+  +DepthFirstManual(root): IEnumerable<Node>
+  +BreadthFirstManual(root): IEnumerable<Node>
+  +FindCycle(): IReadOnlyList<Node>
+}
+class ManualTraversal {
+  +GetEnumerator(): IEnumerator<Node>
+}
+class DepthFirstEnumerator {
+  -pending: Stack<Node>
+  -visited: HashSet<Node>
+  +Current: Node
+  +MoveNext(): bool
+  +Reset(): void
+  +Dispose(): void
+}
+class BreadthFirstEnumerator {
+  -pending: Queue<Node>
+  -visited: HashSet<Node>
+  +Current: Node
+  +MoveNext(): bool
+  +Reset(): void
+  +Dispose(): void
+}
+class GraphDemo
+EnumerableNode <|.. DependencyGraph
+EnumerableNode <|.. ManualTraversal
+EnumeratorNode <|.. DepthFirstEnumerator
+EnumeratorNode <|.. BreadthFirstEnumerator
+DependencyGraph --> "0..*" Node
+DependencyGraph ..> ManualTraversal : creates a traversal
+ManualTraversal ..> DepthFirstEnumerator : new for each enumeration
+ManualTraversal ..> BreadthFirstEnumerator : new for each enumeration
+DepthFirstEnumerator --> DependencyGraph
+BreadthFirstEnumerator --> DependencyGraph
+GraphDemo --> DependencyGraph
+note bottom of DependencyGraph
+  Immutable topology; no shared Current or visited set.
+  DepthFirstCore and BreadthFirstCore use yield return.
+  FindCycle checks active DFS ancestors in all components.
+end note
+@enduml

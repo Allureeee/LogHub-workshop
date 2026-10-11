@@ -1,0 +1,66 @@
+namespace LogHub.Tests.Importing;
+internal static class Variant20Fixture
+{
+    public const string Text = """
+2026-10-07T10:00:00|Debug|Variant20 record 01
+{"date":"2026-10-07T10:01:00","level":"Info","message":"Variant20 record 02"}
+2026-10-07T10:02:00|Warning|Variant20 record 03
+{"date":"2026-10-07T10:03:00","level":"Error","message":"Variant20 record 04"}
+2026-10-07T10:04:00|Critical|Variant20 record 05
+broken line
+{"date":"2026-10-07T10:05:00","level":"Debug","message":"Variant20 record 06"}
+2026-10-07T10:06:00|Info|Variant20 record 07
+{"date":"2026-10-07T10:07:00","level":"Warning","message":"Variant20 record 08"}
+2026-10-07T10:08:00|Error|Variant20 record 09
+{"date":"2026-10-07T10:09:00","level":"Critical","message":"Variant20 record 10"}
+not-a-date|Error|Invalid date
+2026-10-07T10:10:00|Debug|Variant20 record 11
+{"date":"2026-10-07T10:11:00","level":"Info","message":"Variant20 record 12"}
+2026-10-07T10:12:00|Warning|Variant20 record 13
+{"date":"2026-10-07T10:13:00","level":"Error","message":"Variant20 record 14"}
+2026-10-07T10:14:00|Critical|Variant20 record 15
+{"date":"2026-10-07T11:00:00","level":42,"message":"Invalid level type"}
+{"date":"2026-10-07T10:15:00","level":"Debug","message":"Variant20 record 16"}
+2026-10-07T10:16:00|Info|Variant20 record 17
+{"date":"2026-10-07T10:17:00","level":"Warning","message":"Variant20 record 18"}
+2026-10-07T10:18:00|Error|Variant20 record 19
+{"date":"2026-10-07T10:19:00","level":"Critical","message":"Variant20 record 20"}
+{"date":"2026-10-07T11:00:00","level":"Error"}
+2026-10-07T10:20:00|Debug|Variant20 record 21
+{"date":"2026-10-07T10:21:00","level":"Info","message":"Variant20 record 22"}
+2026-10-07T10:22:00|Warning|Variant20 record 23
+{"date":"2026-10-07T10:23:00","level":"Error","message":"Variant20 record 24"}
+2026-10-07T10:24:00|Critical|Variant20 record 25
+{"date":
+{"date":"2026-10-07T10:25:00","level":"Debug","message":"Variant20 record 26"}
+2026-10-07T10:26:00|Info|Variant20 record 27
+{"date":"2026-10-07T10:27:00","level":"Warning","message":"Variant20 record 28"}
+2026-10-07T10:28:00|Error|Variant20 record 29
+{"date":"2026-10-07T10:29:00","level":"Critical","message":"Variant20 record 30"}
+{"date":5,"level":"Error","message":"Invalid date type"}
+2026-10-07T10:30:00|Debug|Variant20 record 31
+{"date":"2026-10-07T10:31:00","level":"Info","message":"Variant20 record 32"}
+2026-10-07T10:32:00|Warning|Variant20 record 33
+{"date":"2026-10-07T10:33:00","level":"Error","message":"Variant20 record 34"}
+2026-10-07T10:34:00|Critical|Variant20 record 35
+2026-10-07T11:00:00|Unknown|Rejected by the validation hook
+{"date":"2026-10-07T10:35:00","level":"Debug","message":"Variant20 record 36"}
+2026-10-07T10:36:00|Info|Variant20 record 37
+{"date":"2026-10-07T10:37:00","level":"Warning","message":"Variant20 record 38"}
+2026-10-07T10:38:00|Error|Variant20 record 39
+{"date":"2026-10-07T10:39:00","level":"Critical","message":"Variant20 record 40"}
+2026-10-07T11:00:00|Info|
+2026-10-07T10:40:00|Debug|Variant20 record 41
+{"date":"2026-10-07T10:41:00","level":"Info","message":"Variant20 record 42"}
+2026-10-07T10:42:00|Warning|Variant20 record 43
+{"date":"2026-10-07T10:43:00","level":"Error","message":"Variant20 record 44"}
+2026-10-07T10:44:00|Critical|Variant20 record 45
+{"date":"not-a-date","level":"Info","message":"Invalid date"}
+{"date":"2026-10-07T10:45:00","level":"Debug","message":"Variant20 record 46"}
+2026-10-07T10:46:00|Info|Variant20 record 47
+{"date":"2026-10-07T10:47:00","level":"Warning","message":"Variant20 record 48"}
+2026-10-07T10:48:00|Error|Variant20 record 49
+{"date":"2026-10-07T10:49:00","level":"Critical","message":"Variant20 record 50"}
+{"date":"2026-10-07T11:00:00","level":"Error","message":{}}
+""";
+}

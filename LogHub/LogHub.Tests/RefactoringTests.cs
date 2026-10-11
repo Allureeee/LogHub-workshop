@@ -5,7 +5,8 @@ using LogHub.Formatting;
 using LogHub.Models;
 using LogHub.Parsing;
 using LogHub.Processing;
-using LogHub.Reading;
+using LogHub.Importing;
+using LogHub.Importing.Sources;
 using LogHub.Sinks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -64,19 +65,17 @@ public class RefactoringTests
     public void Processing_RoutesAcceptedRecordsToSink()
     {
         var sink = new FakeSink();
-        var processor = new LogProcessingModule(
-            new LogFileReader(),
-            new LogParser(),
-            new SeverityFilter("Info"),
-            new LogFormatter("plain"),
-            sink);
         var lines = new[]
         {
             "2026-01-15 10:00:01|Debug|Отладочная запись",
             "2026-01-15 10:00:02|Info|Конфигурация загружена",
             "2026-01-15 10:00:03|Error|Не удалось открыть файл"
         };
-        var result = processor.Run(lines);
+        var importer = new InMemoryLogImporter(
+            new InMemoryTextSource(string.Join("\n", lines)), new LogParser());
+        var processor = new LogProcessor(importer, new SeverityFilter("Info"),
+            new LogFormatter("plain"), new[] { sink });
+        var result = processor.Run();
         Assert.AreEqual(2, result.Written);
         Assert.AreEqual(1, result.Skipped);
         Assert.HasCount(2, sink.Records);
@@ -87,18 +86,16 @@ public class RefactoringTests
     public void Processing_InvalidLine_IsSkipped()
     {
         var sink = new FakeSink();
-        var processor = new LogProcessingModule(
-            new LogFileReader(),
-            new LogParser(),
-            new SeverityFilter("Info"),
-            new LogFormatter("plain"),
-            sink);
         var lines = new[]
         {
             "invalid line",
             "2026-01-15 10:00:01|Info|Конфигурация загружена"
         };
-        var result = processor.Run(lines);
+        var importer = new InMemoryLogImporter(
+            new InMemoryTextSource(string.Join("\n", lines)), new LogParser());
+        var processor = new LogProcessor(importer, new SeverityFilter("Info"),
+            new LogFormatter("plain"), new[] { sink });
+        var result = processor.Run();
         Assert.AreEqual(1, result.Written);
         Assert.AreEqual(1, result.Skipped);
         Assert.HasCount(1, sink.Records);
@@ -107,12 +104,6 @@ public class RefactoringTests
     public void Processing_SameInputAsGodObject_PreservesCounters()
     {
         var sink = new FakeSink();
-        var processor = new LogProcessingModule(
-            new LogFileReader(),
-            new LogParser(),
-            new SeverityFilter("Info"),
-            new LogFormatter("plain"),
-            sink);
         var lines = new[]
         {
             "2026-01-15 10:00:01|Info|Конфигурация загружена",
@@ -121,7 +112,11 @@ public class RefactoringTests
             "2026-01-15 10:00:04|Debug|Отладочная запись",
             "неправильная строка"
         };
-        var result = processor.Run(lines);
+        var importer = new InMemoryLogImporter(
+            new InMemoryTextSource(string.Join("\n", lines)), new LogParser());
+        var processor = new LogProcessor(importer, new SeverityFilter("Info"),
+            new LogFormatter("plain"), new[] { sink });
+        var result = processor.Run();
         Assert.AreEqual(3, result.Written);
         Assert.AreEqual(2, result.Skipped);
         Assert.HasCount(3, sink.Records);

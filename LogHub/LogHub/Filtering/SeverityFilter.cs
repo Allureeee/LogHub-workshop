@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using LogHub.Models;
-
 namespace LogHub.Filtering;
 public class SeverityFilter
 {
-    private static readonly Dictionary<string, int> SeverityLevels = new()
+    private static readonly Dictionary<string, int> SeverityLevels = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Debug"] = 0,
         ["Info"] = 1,

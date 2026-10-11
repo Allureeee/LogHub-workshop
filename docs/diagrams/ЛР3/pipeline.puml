@@ -1,0 +1,37 @@
+@startuml "pipeline.puml"
+left to right direction
+skinparam classAttributeIconSize 0
+class LogHubApplication
+class LogProcessor
+interface IConfigService
+class ConfigService
+class LogConfiguration
+interface ILogImporter
+interface ILogSink
+class ConsoleLogSink
+class FileLogSink
+class SeverityFilter
+class LogFormatter
+class GraphDemo
+class TextWriter <<BCL>>
+class CompositionRoot
+LogHubApplication --> LogProcessor
+LogHubApplication --> IConfigService
+LogHubApplication --> GraphDemo
+LogHubApplication --> TextWriter
+IConfigService <|.. ConfigService
+ConfigService --> LogConfiguration
+LogProcessor --> ILogImporter
+LogProcessor --> SeverityFilter
+LogProcessor --> LogFormatter
+LogProcessor --> "1..*" ILogSink
+ILogSink <|.. ConsoleLogSink
+ILogSink <|.. FileLogSink
+ConsoleLogSink --> LogConfiguration
+FileLogSink --> LogConfiguration
+CompositionRoot ..> LogHubApplication : constructor injection through DI
+note bottom of LogProcessor
+  Written counts accepted records once,
+  even when console and file both receive them.
+end note
+@enduml
