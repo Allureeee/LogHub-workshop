@@ -43,7 +43,7 @@ public class RefactoringTests
     public void Filter_RecordBelowMinimum_IsRejected()
     {
         var filter = new SeverityFilter("Warning");
-        var record = new LogRecord
+        var record = new SimpleLogEntry
         {
             Severity = "Info",
             Message = "Обычное сообщение"
@@ -54,7 +54,7 @@ public class RefactoringTests
     public void Filter_RecordAtMinimum_IsAccepted()
     {
         var filter = new SeverityFilter("Warning");
-        var record = new LogRecord
+        var record = new SimpleLogEntry
         {
             Severity = "Warning",
             Message = "Предупреждение"
@@ -73,7 +73,7 @@ public class RefactoringTests
         };
         var importer = new InMemoryLogImporter(
             new InMemoryTextSource(string.Join("\n", lines)), new LogParser());
-        var processor = new LogProcessor(importer, new SeverityFilter("Info"),
+        var processor = TestPipeline.CreateProcessor(importer, new SeverityFilter("Info"),
             new LogFormatter("plain"), new[] { sink });
         var result = processor.Run();
         Assert.AreEqual(2, result.Written);
@@ -93,7 +93,7 @@ public class RefactoringTests
         };
         var importer = new InMemoryLogImporter(
             new InMemoryTextSource(string.Join("\n", lines)), new LogParser());
-        var processor = new LogProcessor(importer, new SeverityFilter("Info"),
+        var processor = TestPipeline.CreateProcessor(importer, new SeverityFilter("Info"),
             new LogFormatter("plain"), new[] { sink });
         var result = processor.Run();
         Assert.AreEqual(1, result.Written);
@@ -114,7 +114,7 @@ public class RefactoringTests
         };
         var importer = new InMemoryLogImporter(
             new InMemoryTextSource(string.Join("\n", lines)), new LogParser());
-        var processor = new LogProcessor(importer, new SeverityFilter("Info"),
+        var processor = TestPipeline.CreateProcessor(importer, new SeverityFilter("Info"),
             new LogFormatter("plain"), new[] { sink });
         var result = processor.Run();
         Assert.AreEqual(3, result.Written);
@@ -136,7 +136,7 @@ public class RefactoringTests
     public void Formatter_JsonFormat_ReturnsJsonText()
     {
         var formatter = new LogFormatter("json");
-        var record = new LogRecord
+        var record = new SimpleLogEntry
         {
             Date = new System.DateTime(2026, 1, 15, 10, 0, 1),
             Severity = "Error",

@@ -1,8 +1,9 @@
-using System;
+using LogHub.Visiting;
 namespace LogHub.Models;
-public class LogRecord
+public abstract class LogRecord
 {
-    public DateTime Date { get; set; }
-    public string Severity { get; set; } = string.Empty;
-    public string Message { get; set; } = string.Empty;
+    public DateTime Date { get; init; }
+    public string Severity { get; init; } = string.Empty;
+    public string Message { get; init; } = string.Empty;
+    public abstract void Accept(ILogEntryVisitor visitor);
 }

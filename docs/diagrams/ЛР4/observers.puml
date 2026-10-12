@@ -1,0 +1,61 @@
+@startuml "observers"
+left to right direction
+skinparam classAttributeIconSize 0
+class ProcessedLog <<record>> {
+  +Sequence: int
+  +Record: LogRecord
+  +Text: string
+}
+interface IPushLogObserver {
+  +OnProcessed(ProcessedLog): void
+}
+interface IPullLogObserver {
+  +OnChanged(IPullLogSource): void
+}
+interface IPullLogSource {
+  +Current: ProcessedLog
+}
+class PipelineEvents {
+  +SubscribePush(observer): IDisposable
+  +SubscribePull(observer): IDisposable
+  +Publish(item): void
+  +Failures: IReadOnlyList
+}
+abstract class LogObserver {
+  +OnProcessed(item): void
+  +OnChanged(source): void
+  {abstract} #Observe(item): void
+}
+class ProcessedCounterObserver
+class CriticalAlertObserver
+class "SinkObserver<TSink>" as SinkObserver
+interface ILogSink
+class ConsoleLogSink
+class FileLogSink
+class PipelineSubscriptions {
+  +Dispose(): void
+  +Reset(): void
+}
+class LogConfiguration
+IPushLogObserver <|.. LogObserver
+IPullLogObserver <|.. LogObserver
+IPullLogSource <|.. PipelineEvents
+LogObserver <|-- ProcessedCounterObserver
+LogObserver <|-- CriticalAlertObserver
+LogObserver <|-- SinkObserver
+PipelineEvents --> "0..*" IPushLogObserver : payload
+PipelineEvents --> "0..*" IPullLogObserver : change notification
+PipelineEvents --> ProcessedLog : stable current snapshot
+LogObserver ..> IPullLogSource : reads Current in pull callback
+SinkObserver --> ILogSink
+ILogSink <|.. ConsoleLogSink
+ILogSink <|.. FileLogSink
+PipelineSubscriptions --> PipelineEvents
+PipelineSubscriptions --> "0..*" LogObserver
+PipelineSubscriptions ..> LogConfiguration : selects push or pull
+note bottom of PipelineEvents
+  Each subscriber is invoked in a separate try/catch.
+  Dispose removes that subscription.
+  Re-entrant publication is rejected.
+end note
+@enduml
