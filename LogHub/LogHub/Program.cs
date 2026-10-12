@@ -4,16 +4,15 @@ using Microsoft.Extensions.DependencyInjection;
 
 var showGraph = args.Contains("--graph", StringComparer.OrdinalIgnoreCase);
 var configPath = args.FirstOrDefault(a => !a.StartsWith("--", StringComparison.Ordinal))
-    ?? Path.Combine(AppContext.BaseDirectory, "profiles", "variant20.config");
+    ?? Path.Combine(AppContext.BaseDirectory, "profiles", "pipeline-push.config");
 try
 {
     var services = CompositionRoot.CreateServices(configPath);
     using var provider = services.BuildServiceProvider(new ServiceProviderOptions
         { ValidateOnBuild = true, ValidateScopes = true });
-    // The only explicit service-provider resolution in production code.
     var application = provider.GetRequiredService<LogHubApplication>();
-    application.Run(showGraph);
-    return 0;
+    var result = application.Run(showGraph);
+    return result.NotificationErrors == 0 ? 0 : 2;
 }
 catch (Exception exception) when (exception is IOException or UnauthorizedAccessException
     or ArgumentException or NotSupportedException or InvalidOperationException)

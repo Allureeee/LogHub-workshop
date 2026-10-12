@@ -1,25 +1,13 @@
 using LogHub.Configuration;
 using LogHub.Models;
-
 namespace LogHub.Sinks;
 [SinkName("console")]
-public class ConsoleLogSink : ILogSink
+public sealed class ConsoleLogSink : ILogSink
 {
-    public ConsoleLogSink(LogConfiguration configuration)
-    {
-    }
+    private readonly TextWriter _output;
+    public ConsoleLogSink(LogConfiguration configuration) : this(configuration, Console.Out) { }
+    public ConsoleLogSink(LogConfiguration configuration, TextWriter output) => _output = output;
     public string Name => "console";
-    public void Write(LogRecord record, string text)
-    {
-        var previous = Console.ForegroundColor;
-        Console.ForegroundColor =
-            record.Severity == "Error" || record.Severity == "Critical"
-                ? ConsoleColor.Red
-                : ConsoleColor.Gray;
-        Console.WriteLine(text);
-        Console.ForegroundColor = previous;
-    }
-    public void Dispose()
-    {
-    }
+    public void Write(LogRecord record, string text) => _output.WriteLine(text);
+    public void Dispose() { }
 }

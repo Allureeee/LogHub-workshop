@@ -1,0 +1,73 @@
+@startuml "chain-and-visitors"
+left to right direction
+skinparam classAttributeIconSize 0
+abstract class LogRecord {
+  +Date: DateTime
+  +Severity: string
+  +Message: string
+  {abstract} +Accept(visitor): void
+}
+class SimpleLogEntry {
+  +Accept(visitor): void
+}
+class ExceptionLogEntry {
+  +StackTrace: string
+  +Accept(visitor): void
+}
+class MetricLogEntry {
+  +Value: double
+  +Accept(visitor): void
+}
+interface ILogEntryVisitor {
+  +Visit(SimpleLogEntry): void
+  +Visit(ExceptionLogEntry): void
+  +Visit(MetricLogEntry): void
+}
+class LogFormatter {
+  +Format(LogRecord): string
+}
+class StatisticsVisitor
+class DuplicateKeyVisitor
+class DuplicateKey <<record>>
+class FilterChain {
+  +Handle(entry): bool
+  +Reset(): void
+}
+abstract class LogFilter {
+  +Name: string
+  +Handle(entry): bool
+  {abstract} #Allows(entry): bool
+  +Reset(): void
+}
+class SeverityLogFilter
+class SeverityFilter
+class AgeLogFilter
+class DuplicateLogFilter
+class LogConfiguration
+class TimeProvider <<BCL>>
+LogRecord <|-- SimpleLogEntry
+LogRecord <|-- ExceptionLogEntry
+LogRecord <|-- MetricLogEntry
+LogRecord ..> ILogEntryVisitor
+ILogEntryVisitor <|.. LogFormatter
+ILogEntryVisitor <|.. StatisticsVisitor
+ILogEntryVisitor <|.. DuplicateKeyVisitor
+DuplicateKeyVisitor --> DuplicateKey
+FilterChain ..> LogConfiguration : reads filter order
+FilterChain --> "0..1" LogFilter : first
+LogFilter --> "0..1" LogFilter : next
+LogFilter <|-- SeverityLogFilter
+LogFilter <|-- AgeLogFilter
+LogFilter <|-- DuplicateLogFilter
+LogFilter ..> LogRecord
+SeverityLogFilter --> SeverityFilter
+AgeLogFilter --> TimeProvider
+AgeLogFilter ..> LogConfiguration : reads max age
+DuplicateLogFilter --> DuplicateKeyVisitor
+DuplicateLogFilter --> "0..*" DuplicateKey : seen in this run
+note bottom of LogRecord
+  Each concrete class overrides Accept:
+  visitor.Visit(this).
+  No runtime type tests in visitors.
+end note
+@enduml

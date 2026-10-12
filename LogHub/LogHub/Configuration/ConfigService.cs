@@ -8,6 +8,11 @@ public class ConfigService : IConfigService
         _values = new Dictionary<string, string>
         {
             ["sink"] = configuration.Sink,
+            ["filters"] = configuration.Filters,
+            ["notifications"] = configuration.Notifications,
+            ["maxAgeMinutes"] = configuration.MaxAgeMinutes.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["bufferCapacity"] = configuration.BufferCapacity.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ["referenceTimeUtc"] = configuration.ReferenceTimeUtc?.ToString("O") ?? string.Empty,
             ["importer"] = configuration.Importer,
             ["outputPath"] = configuration.OutputPath,
             ["minSeverity"] = configuration.MinSeverity,

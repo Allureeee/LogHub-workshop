@@ -8,7 +8,6 @@ using LogHub.Parsing;
 using LogHub.Processing;
 using LogHub.Sinks;
 namespace LogHub.Tests.Importing;
-
 [TestClass]
 public sealed class ImporterTests
 {
@@ -46,6 +45,7 @@ public sealed class ImporterTests
     {
         var type = typeof(LogImporterBase);
         var method = type.GetMethod(nameof(LogImporterBase.Import))!;
+        // Implicit interface implementations may be virtual+final in CLR metadata.
         Assert.IsTrue(!method.IsVirtual || method.IsFinal);
         Assert.IsTrue(type.GetMethod("Read", BindingFlags.Instance | BindingFlags.NonPublic)!.IsAbstract);
         Assert.IsTrue(type.GetMethod("Parse", BindingFlags.Instance | BindingFlags.NonPublic)!.IsAbstract);
@@ -76,7 +76,7 @@ public sealed class ImporterTests
     public void OverriddenHook_AcceptsKnownLevelCaseInsensitively()
     {
         using var sink = new MemorySink();
-        var processor = new LogProcessor(Mixed(Pipe.Replace("Info", "error")),
+        var processor = TestPipeline.CreateProcessor(Mixed(Pipe.Replace("Info", "error")),
             new SeverityFilter("Error"), new LogFormatter("plain"), new[] { sink });
         Assert.AreEqual(1, processor.Run().Written);
     }
@@ -173,11 +173,13 @@ public sealed class ImporterTests
         Assert.AreEqual("release", mock.Calls[^1]);
     }
     [TestMethod]
-    public void SinkFailure_DisposesImportEnumeration()
+    public void SinkFailure_IsReported_AndDisposesImportEnumeration()
     {
         var mock = new RecordingImporterMock(Pipe);
         using var sink = new MemorySink { Fail = true };
-        ExpectException<IOException>(() => Processor(mock, sink).Run());
+        // LR7 requires subscriber exceptions to be isolated, not rethrown.
+        var result = Processor(mock, sink).Run();
+        Assert.AreEqual(1, result.NotificationErrors);
         CollectionAssert.AreEqual(new[] { "close", "release" }, mock.Calls.TakeLast(2).ToArray());
     }
     [TestMethod]
@@ -214,7 +216,7 @@ public sealed class ImporterTests
 
     private static MixedLogImporter Mixed(string text) => new(new InMemoryTextSource(text), new LogParser());
     private static LogProcessor Processor(ILogImporter importer, params ILogSink[] sinks) =>
-        new(importer, new SeverityFilter("Info"), new LogFormatter("plain"), sinks);
+        TestPipeline.CreateProcessor(importer, new SeverityFilter("Info"), new LogFormatter("plain"), sinks);
     private static void ExpectException<T>(Action action) where T : Exception
     {
         try { action(); }
@@ -249,7 +251,7 @@ public sealed class ImporterTests
         protected override LogRecord? Parse(string line)
         {
             Record("parse");
-            return new LogRecord { Date = new DateTime(2026, 10, 7), Severity = "Info", Message = line };
+            return new SimpleLogEntry { Date = new DateTime(2026, 10, 7), Severity = "Info", Message = line };
         }
         protected override bool Validate(LogRecord record) { Record("validate"); return true; }
         protected override void Close(TextReader reader) { Record("close"); base.Close(reader); }

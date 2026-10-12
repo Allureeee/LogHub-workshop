@@ -1,0 +1,65 @@
+@startuml "pipeline"
+left to right direction
+skinparam classAttributeIconSize 0
+class LogHubApplication
+class PipelineReport
+class LogProcessor
+class LogFlowMediator {
+  +Run(): ProcessingResult
+  +ChangeImporter(importer): void
+  -OnPressureChanged(overloaded): void
+}
+class ImportSession {
+  +Paused: bool
+  +Start(): void
+  +TryRead(out item): bool
+  +Pause(): void
+  +Resume(): void
+  +Stop(): void
+}
+interface ILogImporter
+abstract class LogImporterBase
+class MixedLogImporter
+class JsonLogImporter
+class InMemoryLogImporter
+class ProcessingPipeline {
+  +Enqueue(item): void
+  +Drain(): void
+  +PressureChanged: event
+}
+class FilterChain
+class LogFormatter
+class StatisticsVisitor
+class PipelineEvents
+class PipelineSubscriptions
+LogHubApplication --> LogProcessor
+LogHubApplication --> PipelineReport
+LogProcessor --> LogFlowMediator
+LogFlowMediator --> ImportSession
+LogFlowMediator --> ProcessingPipeline : subscribes to pressure event
+ImportSession --> ILogImporter : replaceable strategy
+ILogImporter <|.. LogImporterBase
+LogImporterBase <|-- MixedLogImporter
+LogImporterBase <|-- JsonLogImporter
+LogImporterBase <|-- InMemoryLogImporter
+ProcessingPipeline --> FilterChain
+ProcessingPipeline --> LogFormatter
+ProcessingPipeline --> StatisticsVisitor
+ProcessingPipeline --> PipelineEvents
+ProcessingPipeline --> PipelineSubscriptions
+PipelineReport --> StatisticsVisitor
+PipelineReport --> ProcessedCounterObserver
+PipelineReport --> CriticalAlertObserver
+PipelineReport --> LogFlowMediator
+PipelineReport --> PipelineEvents
+note bottom of ProcessingPipeline
+  Queue capacity is bounded.
+  Full -> mediator pauses ImportSession.
+  Empty -> mediator resumes ImportSession.
+  No field referencing an importer.
+end note
+note bottom of LogFlowMediator
+  Sequential cooperative scheduling.
+  No Thread.Sleep, parallel workers or dropped batches.
+end note
+@enduml
