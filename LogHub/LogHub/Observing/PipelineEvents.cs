@@ -38,6 +38,7 @@ public sealed class PipelineEvents : IPullLogSource
         }
         finally { _publishing = false; }
     }
+    public void ReportFailure(string observer, Exception error) => _failures.Add(new ObserverFailure(observer, error));
     public void Reset()
     {
         if (_publishing) throw new InvalidOperationException("Cannot reset during publication.");

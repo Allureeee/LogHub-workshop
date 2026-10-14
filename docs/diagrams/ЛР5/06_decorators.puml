@@ -1,0 +1,51 @@
+@startuml "decorators"
+title LogHub LR5 - decorators
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+class "BufferedLogSink" as BufferedLogSink {
+  +PendingCount: int
+  +Write(record, text): void
+  +Flush(): void
+}
+class "BufferedWriteException" as BufferedWriteException
+interface "IFlushableLogSink" as IFlushableLogSink {
+  +Flush(): void
+}
+abstract class "LogSinkDecorator" as LogSinkDecorator {
+  +Write(record, text): void
+  +Flush(): void
+  +Dispose(): void
+}
+class "RetryLogSink" as RetryLogSink {
+  +Write(record, text): void
+  +Flush(): void
+}
+class "SinkDecoration" as SinkDecoration <<static>>
+class "WriteMeasurement" as WriteMeasurement <<record>>
+class "TimingLogSink" as TimingLogSink {
+  +Write(record, text): void
+}
+class "PipelineSinkLifetime" as PipelineSinkLifetime {
+  +Flush(): void
+  +Dispose(): void
+}
+interface "ILogSink" as ILogSink <<other page>>
+class "PipelineEvents" as PipelineEvents <<other page>>
+IFlushableLogSink <|.. LogSinkDecorator
+ILogSink <|.. LogSinkDecorator
+LogSinkDecorator --> ILogSink : Inner
+LogSinkDecorator <|-- BufferedLogSink
+LogSinkDecorator <|-- RetryLogSink
+LogSinkDecorator <|-- TimingLogSink
+PipelineSinkLifetime --> ILogSink : _sinks
+PipelineSinkLifetime --> PipelineEvents : _events
+PipelineSinkLifetime --> WriteMeasurement : Measurements
+TimingLogSink --> WriteMeasurement : _report
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml

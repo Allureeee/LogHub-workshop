@@ -1,0 +1,41 @@
+@startuml "visitor_models"
+title LogHub LR5 - visitor models
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+class "LogFormatter" as LogFormatter
+class "ExceptionLogEntry" as ExceptionLogEntry {
+  +Accept(visitor): void
+}
+abstract class "LogRecord" as LogRecord {
+  {abstract} +Accept(visitor): void
+}
+class "MetricLogEntry" as MetricLogEntry {
+  +Accept(visitor): void
+}
+class "SimpleLogEntry" as SimpleLogEntry {
+  +Accept(visitor): void
+}
+class "LogParser" as LogParser
+class "DuplicateKey" as DuplicateKey <<record>>
+class "DuplicateKeyVisitor" as DuplicateKeyVisitor
+interface "ILogEntryVisitor" as ILogEntryVisitor {
+  +Visit(SimpleLogEntry): void
+  +Visit(ExceptionLogEntry): void
+  +Visit(MetricLogEntry): void
+}
+class "StatisticsVisitor" as StatisticsVisitor
+DuplicateKeyVisitor --> DuplicateKey : Key
+ILogEntryVisitor <|.. DuplicateKeyVisitor
+ILogEntryVisitor <|.. LogFormatter
+ILogEntryVisitor <|.. StatisticsVisitor
+LogRecord <|-- ExceptionLogEntry
+LogRecord <|-- MetricLogEntry
+LogRecord <|-- SimpleLogEntry
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml

@@ -15,7 +15,10 @@ public class ConfigReader
             ["format"] = "plain", ["connection"] = "local", ["logPath"] = "sample.log",
             ["outputPath"] = string.Empty, ["filters"] = "severity,age,duplicates",
             ["maxAgeMinutes"] = "60", ["notifications"] = "push", ["bufferCapacity"] = "4",
-            ["referenceTimeUtc"] = string.Empty
+            ["referenceTimeUtc"] = string.Empty,
+            ["family"] = "legacy", ["builder"] = "fluent", ["adapter"] = "object",
+            ["databasePath"] = "../output/loghub.sqlite", ["documentPath"] = "../output/documents.jsonl",
+            ["decorators"] = string.Empty, ["batchSize"] = "4", ["retryAttempts"] = "3", ["rule"] = string.Empty
         };
         foreach (var raw in lines)
         {
@@ -45,8 +48,26 @@ public class ConfigReader
                 : Path.GetFullPath(values["outputPath"], baseDirectory),
             Filters = values["filters"], Notifications = notifications, ReferenceTimeUtc = reference,
             MaxAgeMinutes = Number(values, "maxAgeMinutes", 0),
-            BufferCapacity = Number(values, "bufferCapacity", 1)
+            BufferCapacity = Number(values, "bufferCapacity", 1),
+            Family = Choice(values, "family", "legacy", "development", "production"),
+            Builder = Choice(values, "builder", "fluent", "classic"),
+            Adapter = Choice(values, "adapter", "object", "class"),
+            DatabasePath = Path.GetFullPath(values["databasePath"], baseDirectory),
+            DocumentPath = Path.GetFullPath(values["documentPath"], baseDirectory),
+            RuleJson = values["rule"],
+            Delivery = new DeliveryOptions
+            {
+                Decorators = values["decorators"].Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList(),
+                BatchSize = Number(values, "batchSize", 1),
+                Retry = new RetryOptions { Attempts = Number(values, "retryAttempts", 1) }
+            }
         };
+    }
+    private static string Choice(IReadOnlyDictionary<string, string> values, string key, params string[] allowed)
+    {
+        var value = values[key].ToLowerInvariant();
+        return allowed.Contains(value, StringComparer.Ordinal) ? value
+            : throw new ArgumentException($"{key} must be one of: {string.Join(", ", allowed)}.");
     }
     private static int Number(IReadOnlyDictionary<string, string> values, string key, int minimum)
     {

@@ -1,0 +1,52 @@
+@startuml "composite_filters"
+title LogHub LR5 - composite filters
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+class "AgeLogFilter" as AgeLogFilter
+class "CompositeRuleFilter" as CompositeRuleFilter
+class "DuplicateLogFilter" as DuplicateLogFilter
+class "FilterChain" as FilterChain
+abstract class "LogFilter" as LogFilter
+class "SeverityFilter" as SeverityFilter
+class "SeverityLogFilter" as SeverityLogFilter
+class "And" as And
+interface "ILogRule" as ILogRule {
+  +Matches(record): bool
+}
+class "MessageContains" as MessageContains
+class "Not" as Not
+class "Or" as Or
+class "RuleParser" as RuleParser {
+  +Parse(json): ILogRule
+}
+class "SeverityAtLeast" as SeverityAtLeast
+class "DuplicateKey" as DuplicateKey <<other page>>
+class "DuplicateKeyVisitor" as DuplicateKeyVisitor <<other page>>
+interface "ISeverityCatalog" as ISeverityCatalog <<other page>>
+And --> ILogRule : _children
+CompositeRuleFilter --> ILogRule : _rule
+DuplicateLogFilter --> DuplicateKey : _seen
+DuplicateLogFilter --> DuplicateKeyVisitor : _keyVisitor
+FilterChain --> LogFilter : _first
+ILogRule <|.. And
+ILogRule <|.. MessageContains
+ILogRule <|.. Not
+ILogRule <|.. Or
+ILogRule <|.. SeverityAtLeast
+LogFilter <|-- AgeLogFilter
+LogFilter <|-- CompositeRuleFilter
+LogFilter <|-- DuplicateLogFilter
+LogFilter <|-- SeverityLogFilter
+Not --> ILogRule : _child
+Or --> ILogRule : _children
+RuleParser --> ISeverityCatalog : _catalog
+SeverityAtLeast --> ISeverityCatalog : _catalog
+SeverityLogFilter --> SeverityFilter : _predicate
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml

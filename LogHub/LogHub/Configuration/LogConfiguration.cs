@@ -13,4 +13,20 @@ public class LogConfiguration
     public string Notifications { get; set; } = "push";
     public int BufferCapacity { get; set; } = 4;
     public DateTimeOffset? ReferenceTimeUtc { get; set; }
+
+    // "legacy" keeps the explicitly selected LR1-LR4 profiles unchanged.
+    public string Family { get; set; } = "legacy";
+    public string Builder { get; set; } = "fluent";
+    public string Adapter { get; set; } = "object";
+    public string DatabasePath { get; set; } = "loghub.sqlite";
+    public string DocumentPath { get; set; } = "documents.jsonl";
+    public string RuleJson { get; set; } = string.Empty;
+    public DeliveryOptions Delivery { get; set; } = new();
+    public LogConfiguration ShallowClone() => (LogConfiguration)MemberwiseClone();
+    public LogConfiguration DeepClone()
+    {
+        var clone = ShallowClone();
+        clone.Delivery = Delivery.DeepClone();
+        return clone;
+    }
 }

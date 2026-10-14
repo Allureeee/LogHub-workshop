@@ -1,0 +1,51 @@
+@startuml "graphs_legacy_sinks"
+title LogHub LR5 - graphs legacy sinks
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+class "BreadthFirstEnumerator" as BreadthFirstEnumerator
+class "DependencyGraph" as DependencyGraph
+class "DepthFirstEnumerator" as DepthFirstEnumerator
+class "GraphDemo" as GraphDemo
+class "ManualTraversal" as ManualTraversal
+class "Node" as Node <<record>>
+class "ConsoleLogSink" as ConsoleLogSink
+class "DatabaseLogSink" as DatabaseLogSink
+class "FileLogSink" as FileLogSink
+interface "ILogSink" as ILogSink {
+  +Name: string
+  +Write(record, text): void
+  +Dispose(): void
+}
+class "LogSinkFactory" as LogSinkFactory <<static>>
+class "SinkNameAttribute" as SinkNameAttribute
+BreadthFirstEnumerator --> DependencyGraph : _graph
+BreadthFirstEnumerator --> Node : Current
+BreadthFirstEnumerator --> Node : _current
+BreadthFirstEnumerator --> Node : _pending
+BreadthFirstEnumerator --> Node : _root
+BreadthFirstEnumerator --> Node : _visited
+DependencyGraph --> Node : Nodes
+DependencyGraph --> Node : _edges
+DependencyGraph --> Node : _nodes
+DepthFirstEnumerator --> DependencyGraph : _graph
+DepthFirstEnumerator --> Node : Current
+DepthFirstEnumerator --> Node : _current
+DepthFirstEnumerator --> Node : _pending
+DepthFirstEnumerator --> Node : _root
+DepthFirstEnumerator --> Node : _visited
+GraphDemo --> DependencyGraph : _cyclicExample
+GraphDemo --> DependencyGraph : _services
+GraphDemo --> Node : _root
+ILogSink <|.. ConsoleLogSink
+ILogSink <|.. DatabaseLogSink
+ILogSink <|.. FileLogSink
+ManualTraversal --> DependencyGraph : _graph
+ManualTraversal --> Node : _root
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml

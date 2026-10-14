@@ -1,0 +1,35 @@
+@startuml "proxies_catalog"
+title LogHub LR5 - proxies catalog
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+interface "ISeverityCatalog" as ISeverityCatalog {
+  +GetCode(name): int
+}
+class "SeverityCatalog" as SeverityCatalog
+class "CachingSeverityCatalog" as CachingSeverityCatalog {
+  +GetCode(name): int
+  +Invalidate(name): bool
+  +Clear(): void
+}
+class "VirtualLogSink" as VirtualLogSink {
+  +IsCreated: bool
+  +Write(record, text): void
+  +Flush(): void
+  +Dispose(): void
+}
+interface "IFlushableLogSink" as IFlushableLogSink <<other page>>
+interface "ILogSink" as ILogSink <<other page>>
+CachingSeverityCatalog --> ISeverityCatalog : _source
+IFlushableLogSink <|.. VirtualLogSink
+ILogSink <|.. VirtualLogSink
+ISeverityCatalog <|.. CachingSeverityCatalog
+ISeverityCatalog <|.. SeverityCatalog
+VirtualLogSink --> ILogSink : _real
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml

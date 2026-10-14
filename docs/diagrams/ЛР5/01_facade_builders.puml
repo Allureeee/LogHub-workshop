@@ -1,0 +1,83 @@
+@startuml "facade_builders"
+title LogHub LR5 - facade builders
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+class "LogHubApplication" as LogHubApplication
+class "BuiltPipeline" as BuiltPipeline {
+  +Run(showGraph): ProcessingResult
+  +Dispose(): void
+}
+interface "IPipelineConstruction" as IPipelineConstruction {
+  +Reset(configuration): void
+  +BuildSource(): void
+  +BuildProcessing(): void
+  +BuildOutputs(): void
+  +GetResult(): BuiltPipeline
+}
+class "PipelineBuilder" as PipelineBuilder {
+  +Configure(configuration): PipelineBuilder
+  +FromFile(path, importer): PipelineBuilder
+  +FromSource(source, importer): PipelineBuilder
+  +FilterWith(rule): PipelineBuilder
+  +WriteTo(sink): PipelineBuilder
+  +Build(): BuiltPipeline
+}
+class "PipelineDirector" as PipelineDirector {
+  +BuildDefault(): BuiltPipeline
+  +Build(configuration): BuiltPipeline
+}
+class "PipelinePlan" as PipelinePlan
+class "StandardPipelineBuilder" as StandardPipelineBuilder
+class "CompositionRoot" as CompositionRoot <<static>>
+class "LogHub" as LogHub <<static>> {
+  {static} +Run(configuration, resources, showGraph): ProcessingResult
+  {static} +Run(args): int
+}
+class "GraphDemo" as GraphDemo <<other page>>
+interface "IConfigService" as IConfigService <<other page>>
+interface "IHubResources" as IHubResources <<other page>>
+interface "ILogImporter" as ILogImporter <<other page>>
+interface "ILogRule" as ILogRule <<other page>>
+interface "ILogSink" as ILogSink <<other page>>
+interface "ITextSource" as ITextSource <<other page>>
+class "LogConfiguration" as LogConfiguration <<other page>>
+class "LogProcessor" as LogProcessor <<other page>>
+class "PipelineReport" as PipelineReport <<other page>>
+class "PipelineSinkLifetime" as PipelineSinkLifetime <<other page>>
+BuiltPipeline --> LogHubApplication : _application
+IPipelineConstruction <|.. StandardPipelineBuilder
+LogHubApplication --> GraphDemo : _graphDemo
+LogHubApplication --> IConfigService : _config
+LogHubApplication --> LogProcessor : _processor
+LogHubApplication --> PipelineReport : _report
+LogHubApplication --> PipelineSinkLifetime : _sinks
+PipelineBuilder --> IHubResources : _resources
+PipelineBuilder --> ILogImporter : _importer
+PipelineBuilder --> ILogRule : _rule
+PipelineBuilder --> ILogSink : _sinks
+PipelineBuilder --> ITextSource : _source
+PipelineBuilder --> LogConfiguration : _configuration
+PipelineDirector --> IPipelineConstruction : _builder
+PipelinePlan --> IHubResources : Resources
+PipelinePlan --> ILogImporter : Importer
+PipelinePlan --> ILogRule : Rule
+PipelinePlan --> ILogSink : Sinks
+PipelinePlan --> ITextSource : Source
+PipelinePlan --> LogConfiguration : Configuration
+StandardPipelineBuilder --> IHubResources : _resources
+StandardPipelineBuilder --> LogConfiguration : Configuration
+StandardPipelineBuilder --> LogConfiguration : _configuration
+StandardPipelineBuilder --> PipelineBuilder : Builder
+StandardPipelineBuilder --> PipelineBuilder : _builder
+PipelineBuilder ..> CompositionRoot : builds from plan
+CompositionRoot ..> BuiltPipeline : creates owned product
+LogHub ..> PipelineDirector : classic build
+LogHub ..> PipelineBuilder : fluent build
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml

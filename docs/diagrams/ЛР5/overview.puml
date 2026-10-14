@@ -1,0 +1,64 @@
+@startuml "overview.puml"
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+class "LogHub (public facade)" as Hub
+class PipelineDirector
+interface IPipelineConstruction
+class StandardPipelineBuilder
+class PipelineBuilder
+class CompositionRoot
+class BuiltPipeline
+class LogHubApplication
+class ProfileCatalog
+class LogConfiguration
+abstract class LogImporterFactory
+interface ILogImporter
+abstract class LogFamilyFactory
+class FamilyComponents
+interface ILogSink
+class SinkDecoration
+interface ILogRule
+class RuleParser
+class LogProcessor
+class LogFlowMediator
+class ImportSession
+class ProcessingPipeline
+class PipelineEvents
+class PipelineSubscriptions
+class PipelineSinkLifetime
+Hub ..> ProfileCatalog : default prototype
+ProfileCatalog --> LogConfiguration : deep-cloned profiles
+Hub ..> PipelineDirector : classic
+Hub ..> PipelineBuilder : fluent
+PipelineDirector --> IPipelineConstruction
+IPipelineConstruction <|.. StandardPipelineBuilder
+StandardPipelineBuilder --> PipelineBuilder : shared construction steps
+PipelineBuilder ..> CompositionRoot : validated plan
+CompositionRoot ..> LogImporterFactory : select creator
+LogImporterFactory ..> ILogImporter : factory method
+CompositionRoot ..> LogFamilyFactory : select family
+LogFamilyFactory ..> FamilyComponents : compatible output/storage/format
+CompositionRoot ..> SinkDecoration : configure outer-to-inner wrappers
+SinkDecoration ..> ILogSink : decorated target
+CompositionRoot ..> RuleParser
+RuleParser ..> ILogRule : expression tree
+CompositionRoot ..> BuiltPipeline : container-owned product
+BuiltPipeline --> LogHubApplication
+LogHubApplication --> LogProcessor
+LogHubApplication --> PipelineSinkLifetime : flush before summary
+LogProcessor --> LogFlowMediator
+LogFlowMediator --> ImportSession
+LogFlowMediator --> ProcessingPipeline
+ImportSession --> ILogImporter
+ProcessingPipeline --> PipelineEvents
+ProcessingPipeline --> PipelineSubscriptions
+PipelineSubscriptions ..> ILogSink : via SinkObserver
+PipelineSinkLifetime --> ILogSink : owns receiver trees
+PipelineSinkLifetime --> PipelineEvents : final flush errors
+note bottom of ProcessingPipeline
+  Existing LR4 chain + visitors + observers are preserved.
+  CompositeRuleFilter adds an ILogRule to the same chain.
+  Production storage: virtual proxy -> SQL adapter -> SQLite.
+end note
+@enduml
