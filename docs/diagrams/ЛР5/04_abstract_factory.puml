@@ -1,0 +1,92 @@
+@startuml "abstract_factory"
+title LogHub LR5 - abstract factory
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+class "CompactFamilyFormatter" as CompactFamilyFormatter
+class "ConsoleFamilyOutput" as ConsoleFamilyOutput
+class "DatabaseFamilyStorage" as DatabaseFamilyStorage
+class "DetailedFamilyFormatter" as DetailedFamilyFormatter
+class "DevelopmentFactory" as DevelopmentFactory
+class "FamilyComponents" as FamilyComponents {
+  +Output: FamilyOutput
+  +Storage: FamilyStorage
+  +Formatter: FamilyFormatter
+}
+enum "FamilyKind" as FamilyKind
+class "FamilyPacket" as FamilyPacket <<record>>
+abstract class "FamilyFormatter" as FamilyFormatter {
+  {abstract} +Family: FamilyKind
+  {abstract} +Format(record): FamilyPacket
+}
+abstract class "FamilyEndpoint" as FamilyEndpoint {
+  {abstract} +Family: FamilyKind
+  +Write(packet): void
+  {abstract} #WriteCompatible(packet): void
+  {abstract} +Dispose(): void
+}
+abstract class "FamilyOutput" as FamilyOutput
+abstract class "FamilyStorage" as FamilyStorage
+class "FamilyFormattedSink" as FamilyFormattedSink
+class "FamilyLogSink" as FamilyLogSink
+class "FileFamilyOutput" as FileFamilyOutput
+abstract class "LogFamilyFactory" as LogFamilyFactory {
+  {abstract} +CreateOutput(): FamilyOutput
+  {abstract} +CreateStorage(): FamilyStorage
+  {abstract} +CreateFormatter(): FamilyFormatter
+  +CreateFamily(): FamilyComponents
+}
+class "MemoryFamilyStorage" as MemoryFamilyStorage
+class "ProductionFactory" as ProductionFactory
+interface "IHubResources" as IHubResources <<other page>>
+interface "ILogSink" as ILogSink <<other page>>
+interface "ISeverityCatalog" as ISeverityCatalog <<other page>>
+class "LogConfiguration" as LogConfiguration <<other page>>
+class "LogFormatter" as LogFormatter <<other page>>
+class "LogSinkDecorator" as LogSinkDecorator <<other page>>
+CompactFamilyFormatter --> LogFormatter : _visitor
+ConsoleFamilyOutput --> ILogSink : _sink
+DatabaseFamilyStorage --> ILogSink : _sink
+DetailedFamilyFormatter --> LogFormatter : _visitor
+DevelopmentFactory --> IHubResources : _resources
+DevelopmentFactory --> LogConfiguration : _configuration
+FamilyComponents --> FamilyFormatter : Formatter
+FamilyComponents --> FamilyOutput : Output
+FamilyComponents --> FamilyStorage : Storage
+FamilyEndpoint <|-- FamilyOutput
+FamilyEndpoint <|-- FamilyStorage
+FamilyFormattedSink --> FamilyFormatter : _formatter
+FamilyFormatter <|-- CompactFamilyFormatter
+FamilyFormatter <|-- DetailedFamilyFormatter
+FamilyLogSink --> FamilyEndpoint : _endpoint
+FamilyLogSink --> FamilyFormatter : _formatter
+FamilyOutput <|-- ConsoleFamilyOutput
+FamilyOutput <|-- FileFamilyOutput
+FamilyStorage <|-- DatabaseFamilyStorage
+FamilyStorage <|-- MemoryFamilyStorage
+FileFamilyOutput --> ILogSink : _sink
+ILogSink <|.. FamilyLogSink
+LogFamilyFactory <|-- DevelopmentFactory
+LogFamilyFactory <|-- ProductionFactory
+LogSinkDecorator <|-- FamilyFormattedSink
+MemoryFamilyStorage --> FamilyPacket : Packets
+MemoryFamilyStorage --> FamilyPacket : _packets
+ProductionFactory --> IHubResources : _resources
+ProductionFactory --> ISeverityCatalog : _severities
+ProductionFactory --> LogConfiguration : _configuration
+DevelopmentFactory ..> ConsoleFamilyOutput : creates
+DevelopmentFactory ..> MemoryFamilyStorage : creates
+DevelopmentFactory ..> DetailedFamilyFormatter : creates
+ProductionFactory ..> FileFamilyOutput : creates
+ProductionFactory ..> DatabaseFamilyStorage : creates
+ProductionFactory ..> CompactFamilyFormatter : creates
+LogFamilyFactory ..> FamilyComponents : assembles
+FamilyFormatter ..> FamilyPacket : returns
+FamilyEndpoint ..> FamilyPacket : validates and writes
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml

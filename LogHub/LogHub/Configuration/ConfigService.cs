@@ -8,6 +8,9 @@ public class ConfigService : IConfigService
         _values = new Dictionary<string, string>
         {
             ["sink"] = configuration.Sink,
+            ["family"] = configuration.Family,
+            ["builder"] = configuration.Builder,
+            ["adapter"] = configuration.Adapter,
             ["filters"] = configuration.Filters,
             ["notifications"] = configuration.Notifications,
             ["maxAgeMinutes"] = configuration.MaxAgeMinutes.ToString(System.Globalization.CultureInfo.InvariantCulture),

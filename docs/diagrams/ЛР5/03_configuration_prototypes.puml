@@ -1,0 +1,39 @@
+@startuml "configuration_prototypes"
+title LogHub LR5 - configuration prototypes
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+class "ClassicConfigService" as ClassicConfigService
+class "ConfigReader" as ConfigReader
+class "ConfigService" as ConfigService
+class "RetryOptions" as RetryOptions
+class "DeliveryOptions" as DeliveryOptions {
+  +BatchSize: int
+  +DeepClone(): DeliveryOptions
+}
+class "FixedTimeProvider" as FixedTimeProvider
+interface "IConfigService" as IConfigService
+class "LazyConfigService" as LazyConfigService
+class "LogConfiguration" as LogConfiguration {
+  +ShallowClone(): LogConfiguration
+  +DeepClone(): LogConfiguration
+}
+class "ProfileCatalog" as ProfileCatalog {
+  +Register(name, prototype): void
+  +Create(name): LogConfiguration
+  {static} +Default(): LogConfiguration
+  {static} +BuiltIn(name): LogConfiguration
+}
+DeliveryOptions --> RetryOptions : Retry
+IConfigService <|.. ClassicConfigService
+IConfigService <|.. ConfigService
+IConfigService <|.. LazyConfigService
+LogConfiguration --> DeliveryOptions : Delivery
+ProfileCatalog --> LogConfiguration : _prototypes
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml

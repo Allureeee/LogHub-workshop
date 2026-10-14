@@ -1,0 +1,654 @@
+@startuml 01_facade_builders
+title LogHub LR5 - facade builders
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+class "LogHubApplication" as LogHubApplication
+class "BuiltPipeline" as BuiltPipeline {
+  +Run(showGraph): ProcessingResult
+  +Dispose(): void
+}
+interface "IPipelineConstruction" as IPipelineConstruction {
+  +Reset(configuration): void
+  +BuildSource(): void
+  +BuildProcessing(): void
+  +BuildOutputs(): void
+  +GetResult(): BuiltPipeline
+}
+class "PipelineBuilder" as PipelineBuilder {
+  +Configure(configuration): PipelineBuilder
+  +FromFile(path, importer): PipelineBuilder
+  +FromSource(source, importer): PipelineBuilder
+  +FilterWith(rule): PipelineBuilder
+  +WriteTo(sink): PipelineBuilder
+  +Build(): BuiltPipeline
+}
+class "PipelineDirector" as PipelineDirector {
+  +BuildDefault(): BuiltPipeline
+  +Build(configuration): BuiltPipeline
+}
+class "PipelinePlan" as PipelinePlan
+class "StandardPipelineBuilder" as StandardPipelineBuilder
+class "CompositionRoot" as CompositionRoot <<static>>
+class "LogHub" as LogHub <<static>> {
+  {static} +Run(configuration, resources, showGraph): ProcessingResult
+  {static} +Run(args): int
+}
+class "GraphDemo" as GraphDemo <<other page>>
+interface "IConfigService" as IConfigService <<other page>>
+interface "IHubResources" as IHubResources <<other page>>
+interface "ILogImporter" as ILogImporter <<other page>>
+interface "ILogRule" as ILogRule <<other page>>
+interface "ILogSink" as ILogSink <<other page>>
+interface "ITextSource" as ITextSource <<other page>>
+class "LogConfiguration" as LogConfiguration <<other page>>
+class "LogProcessor" as LogProcessor <<other page>>
+class "PipelineReport" as PipelineReport <<other page>>
+class "PipelineSinkLifetime" as PipelineSinkLifetime <<other page>>
+BuiltPipeline --> LogHubApplication : _application
+IPipelineConstruction <|.. StandardPipelineBuilder
+LogHubApplication --> GraphDemo : _graphDemo
+LogHubApplication --> IConfigService : _config
+LogHubApplication --> LogProcessor : _processor
+LogHubApplication --> PipelineReport : _report
+LogHubApplication --> PipelineSinkLifetime : _sinks
+PipelineBuilder --> IHubResources : _resources
+PipelineBuilder --> ILogImporter : _importer
+PipelineBuilder --> ILogRule : _rule
+PipelineBuilder --> ILogSink : _sinks
+PipelineBuilder --> ITextSource : _source
+PipelineBuilder --> LogConfiguration : _configuration
+PipelineDirector --> IPipelineConstruction : _builder
+PipelinePlan --> IHubResources : Resources
+PipelinePlan --> ILogImporter : Importer
+PipelinePlan --> ILogRule : Rule
+PipelinePlan --> ILogSink : Sinks
+PipelinePlan --> ITextSource : Source
+PipelinePlan --> LogConfiguration : Configuration
+StandardPipelineBuilder --> IHubResources : _resources
+StandardPipelineBuilder --> LogConfiguration : Configuration
+StandardPipelineBuilder --> LogConfiguration : _configuration
+StandardPipelineBuilder --> PipelineBuilder : Builder
+StandardPipelineBuilder --> PipelineBuilder : _builder
+PipelineBuilder ..> CompositionRoot : builds from plan
+CompositionRoot ..> BuiltPipeline : creates owned product
+LogHub ..> PipelineDirector : classic build
+LogHub ..> PipelineBuilder : fluent build
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml
+
+@startuml 02_importer_factories
+title LogHub LR5 - importer factories
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+class "ImporterFactoryRegistry" as ImporterFactoryRegistry {
+  +Get(name): LogImporterFactory
+}
+class "JsonImporterFactory" as JsonImporterFactory
+abstract class "LogImporterFactory" as LogImporterFactory {
+  +Name: string
+  {abstract} +Create(source, parser): ILogImporter
+}
+class "MemoryImporterFactory" as MemoryImporterFactory
+class "MixedImporterFactory" as MixedImporterFactory
+interface "ILogImporter" as ILogImporter
+class "ImportItem" as ImportItem <<record>>
+class "ImportSession" as ImportSession
+class "InMemoryLogImporter" as InMemoryLogImporter
+class "JsonLogImporter" as JsonLogImporter
+abstract class "LogImporterBase" as LogImporterBase
+class "MixedLogImporter" as MixedLogImporter
+class "FileTextSource" as FileTextSource
+interface "ITextSource" as ITextSource
+class "InMemoryTextSource" as InMemoryTextSource
+class "LogParser" as LogParser <<other page>>
+ILogImporter <|.. LogImporterBase
+ITextSource <|.. FileTextSource
+ITextSource <|.. InMemoryTextSource
+ImportSession --> ILogImporter : _strategy
+ImportSession --> ImportItem : _iterator
+ImporterFactoryRegistry --> LogImporterFactory : _factories
+InMemoryLogImporter --> LogParser : _parser
+JsonLogImporter --> LogParser : _parser
+LogImporterBase --> ITextSource : _source
+LogImporterBase <|-- InMemoryLogImporter
+LogImporterBase <|-- JsonLogImporter
+LogImporterBase <|-- MixedLogImporter
+LogImporterFactory <|-- JsonImporterFactory
+LogImporterFactory <|-- MemoryImporterFactory
+LogImporterFactory <|-- MixedImporterFactory
+MixedLogImporter --> LogParser : _parser
+MixedImporterFactory ..> MixedLogImporter : creates
+JsonImporterFactory ..> JsonLogImporter : creates
+MemoryImporterFactory ..> InMemoryLogImporter : creates
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml
+
+@startuml 03_configuration_prototypes
+title LogHub LR5 - configuration prototypes
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+class "ClassicConfigService" as ClassicConfigService
+class "ConfigReader" as ConfigReader
+class "ConfigService" as ConfigService
+class "RetryOptions" as RetryOptions
+class "DeliveryOptions" as DeliveryOptions {
+  +BatchSize: int
+  +DeepClone(): DeliveryOptions
+}
+class "FixedTimeProvider" as FixedTimeProvider
+interface "IConfigService" as IConfigService
+class "LazyConfigService" as LazyConfigService
+class "LogConfiguration" as LogConfiguration {
+  +ShallowClone(): LogConfiguration
+  +DeepClone(): LogConfiguration
+}
+class "ProfileCatalog" as ProfileCatalog {
+  +Register(name, prototype): void
+  +Create(name): LogConfiguration
+  {static} +Default(): LogConfiguration
+  {static} +BuiltIn(name): LogConfiguration
+}
+DeliveryOptions --> RetryOptions : Retry
+IConfigService <|.. ClassicConfigService
+IConfigService <|.. ConfigService
+IConfigService <|.. LazyConfigService
+LogConfiguration --> DeliveryOptions : Delivery
+ProfileCatalog --> LogConfiguration : _prototypes
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml
+
+@startuml 04_abstract_factory
+title LogHub LR5 - abstract factory
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+class "CompactFamilyFormatter" as CompactFamilyFormatter
+class "ConsoleFamilyOutput" as ConsoleFamilyOutput
+class "DatabaseFamilyStorage" as DatabaseFamilyStorage
+class "DetailedFamilyFormatter" as DetailedFamilyFormatter
+class "DevelopmentFactory" as DevelopmentFactory
+class "FamilyComponents" as FamilyComponents {
+  +Output: FamilyOutput
+  +Storage: FamilyStorage
+  +Formatter: FamilyFormatter
+}
+enum "FamilyKind" as FamilyKind
+class "FamilyPacket" as FamilyPacket <<record>>
+abstract class "FamilyFormatter" as FamilyFormatter {
+  {abstract} +Family: FamilyKind
+  {abstract} +Format(record): FamilyPacket
+}
+abstract class "FamilyEndpoint" as FamilyEndpoint {
+  {abstract} +Family: FamilyKind
+  +Write(packet): void
+  {abstract} #WriteCompatible(packet): void
+  {abstract} +Dispose(): void
+}
+abstract class "FamilyOutput" as FamilyOutput
+abstract class "FamilyStorage" as FamilyStorage
+class "FamilyFormattedSink" as FamilyFormattedSink
+class "FamilyLogSink" as FamilyLogSink
+class "FileFamilyOutput" as FileFamilyOutput
+abstract class "LogFamilyFactory" as LogFamilyFactory {
+  {abstract} +CreateOutput(): FamilyOutput
+  {abstract} +CreateStorage(): FamilyStorage
+  {abstract} +CreateFormatter(): FamilyFormatter
+  +CreateFamily(): FamilyComponents
+}
+class "MemoryFamilyStorage" as MemoryFamilyStorage
+class "ProductionFactory" as ProductionFactory
+interface "IHubResources" as IHubResources <<other page>>
+interface "ILogSink" as ILogSink <<other page>>
+interface "ISeverityCatalog" as ISeverityCatalog <<other page>>
+class "LogConfiguration" as LogConfiguration <<other page>>
+class "LogFormatter" as LogFormatter <<other page>>
+class "LogSinkDecorator" as LogSinkDecorator <<other page>>
+CompactFamilyFormatter --> LogFormatter : _visitor
+ConsoleFamilyOutput --> ILogSink : _sink
+DatabaseFamilyStorage --> ILogSink : _sink
+DetailedFamilyFormatter --> LogFormatter : _visitor
+DevelopmentFactory --> IHubResources : _resources
+DevelopmentFactory --> LogConfiguration : _configuration
+FamilyComponents --> FamilyFormatter : Formatter
+FamilyComponents --> FamilyOutput : Output
+FamilyComponents --> FamilyStorage : Storage
+FamilyEndpoint <|-- FamilyOutput
+FamilyEndpoint <|-- FamilyStorage
+FamilyFormattedSink --> FamilyFormatter : _formatter
+FamilyFormatter <|-- CompactFamilyFormatter
+FamilyFormatter <|-- DetailedFamilyFormatter
+FamilyLogSink --> FamilyEndpoint : _endpoint
+FamilyLogSink --> FamilyFormatter : _formatter
+FamilyOutput <|-- ConsoleFamilyOutput
+FamilyOutput <|-- FileFamilyOutput
+FamilyStorage <|-- DatabaseFamilyStorage
+FamilyStorage <|-- MemoryFamilyStorage
+FileFamilyOutput --> ILogSink : _sink
+ILogSink <|.. FamilyLogSink
+LogFamilyFactory <|-- DevelopmentFactory
+LogFamilyFactory <|-- ProductionFactory
+LogSinkDecorator <|-- FamilyFormattedSink
+MemoryFamilyStorage --> FamilyPacket : Packets
+MemoryFamilyStorage --> FamilyPacket : _packets
+ProductionFactory --> IHubResources : _resources
+ProductionFactory --> ISeverityCatalog : _severities
+ProductionFactory --> LogConfiguration : _configuration
+DevelopmentFactory ..> ConsoleFamilyOutput : creates
+DevelopmentFactory ..> MemoryFamilyStorage : creates
+DevelopmentFactory ..> DetailedFamilyFormatter : creates
+ProductionFactory ..> FileFamilyOutput : creates
+ProductionFactory ..> DatabaseFamilyStorage : creates
+ProductionFactory ..> CompactFamilyFormatter : creates
+LogFamilyFactory ..> FamilyComponents : assembles
+FamilyFormatter ..> FamilyPacket : returns
+FamilyEndpoint ..> FamilyPacket : validates and writes
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml
+
+@startuml 05_external_adapters
+title LogHub LR5 - external adapters
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+class "JsonClassAdapter" as JsonClassAdapter
+class "JsonObjectAdapter" as JsonObjectAdapter
+class "SqlClassAdapter" as SqlClassAdapter
+class "SqlObjectAdapter" as SqlObjectAdapter
+interface "IDocumentChannel" as IDocumentChannel {
+  +Send(document): void
+  +Dispose(): void
+}
+interface "ISqlSession" as ISqlSession {
+  +Open(): void
+  +Save(date, severity, message): void
+  +Dispose(): void
+}
+class "JsonLogApi" as JsonLogApi {
+  +Push(document): void
+  +Dispose(): void
+}
+class "SqlLogApi" as SqlLogApi {
+  +Save(date, severity, message): void
+  +Dispose(): void
+}
+interface "IHubResources" as IHubResources
+class "JsonFileChannel" as JsonFileChannel
+class "PhysicalHubResources" as PhysicalHubResources
+class "SqliteLogSession" as SqliteLogSession
+interface "ILogSink" as ILogSink <<other page>>
+interface "ISeverityCatalog" as ISeverityCatalog <<other page>>
+class "LogFormatter" as LogFormatter <<other page>>
+IDocumentChannel <|.. JsonFileChannel
+IHubResources <|.. PhysicalHubResources
+ILogSink <|.. JsonClassAdapter
+ILogSink <|.. JsonObjectAdapter
+ILogSink <|.. SqlClassAdapter
+ILogSink <|.. SqlObjectAdapter
+ISqlSession <|.. SqliteLogSession
+JsonClassAdapter --> LogFormatter : _formatter
+JsonLogApi --> IDocumentChannel : _channel
+JsonLogApi <|-- JsonClassAdapter
+JsonObjectAdapter --> JsonLogApi : _api
+JsonObjectAdapter --> LogFormatter : _formatter
+SqlClassAdapter --> ISeverityCatalog : _severities
+SqlLogApi --> ISqlSession : _session
+SqlLogApi <|-- SqlClassAdapter
+SqlObjectAdapter --> ISeverityCatalog : _severities
+SqlObjectAdapter --> SqlLogApi : _api
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml
+
+@startuml 06_decorators
+title LogHub LR5 - decorators
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+class "BufferedLogSink" as BufferedLogSink {
+  +PendingCount: int
+  +Write(record, text): void
+  +Flush(): void
+}
+class "BufferedWriteException" as BufferedWriteException
+interface "IFlushableLogSink" as IFlushableLogSink {
+  +Flush(): void
+}
+abstract class "LogSinkDecorator" as LogSinkDecorator {
+  +Write(record, text): void
+  +Flush(): void
+  +Dispose(): void
+}
+class "RetryLogSink" as RetryLogSink {
+  +Write(record, text): void
+  +Flush(): void
+}
+class "SinkDecoration" as SinkDecoration <<static>>
+class "WriteMeasurement" as WriteMeasurement <<record>>
+class "TimingLogSink" as TimingLogSink {
+  +Write(record, text): void
+}
+class "PipelineSinkLifetime" as PipelineSinkLifetime {
+  +Flush(): void
+  +Dispose(): void
+}
+interface "ILogSink" as ILogSink <<other page>>
+class "PipelineEvents" as PipelineEvents <<other page>>
+IFlushableLogSink <|.. LogSinkDecorator
+ILogSink <|.. LogSinkDecorator
+LogSinkDecorator --> ILogSink : Inner
+LogSinkDecorator <|-- BufferedLogSink
+LogSinkDecorator <|-- RetryLogSink
+LogSinkDecorator <|-- TimingLogSink
+PipelineSinkLifetime --> ILogSink : _sinks
+PipelineSinkLifetime --> PipelineEvents : _events
+PipelineSinkLifetime --> WriteMeasurement : Measurements
+TimingLogSink --> WriteMeasurement : _report
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml
+
+@startuml 07_proxies_catalog
+title LogHub LR5 - proxies catalog
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+interface "ISeverityCatalog" as ISeverityCatalog {
+  +GetCode(name): int
+}
+class "SeverityCatalog" as SeverityCatalog
+class "CachingSeverityCatalog" as CachingSeverityCatalog {
+  +GetCode(name): int
+  +Invalidate(name): bool
+  +Clear(): void
+}
+class "VirtualLogSink" as VirtualLogSink {
+  +IsCreated: bool
+  +Write(record, text): void
+  +Flush(): void
+  +Dispose(): void
+}
+interface "IFlushableLogSink" as IFlushableLogSink <<other page>>
+interface "ILogSink" as ILogSink <<other page>>
+CachingSeverityCatalog --> ISeverityCatalog : _source
+IFlushableLogSink <|.. VirtualLogSink
+ILogSink <|.. VirtualLogSink
+ISeverityCatalog <|.. CachingSeverityCatalog
+ISeverityCatalog <|.. SeverityCatalog
+VirtualLogSink --> ILogSink : _real
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml
+
+@startuml 08_composite_filters
+title LogHub LR5 - composite filters
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+class "AgeLogFilter" as AgeLogFilter
+class "CompositeRuleFilter" as CompositeRuleFilter
+class "DuplicateLogFilter" as DuplicateLogFilter
+class "FilterChain" as FilterChain
+abstract class "LogFilter" as LogFilter
+class "SeverityFilter" as SeverityFilter
+class "SeverityLogFilter" as SeverityLogFilter
+class "And" as And
+interface "ILogRule" as ILogRule {
+  +Matches(record): bool
+}
+class "MessageContains" as MessageContains
+class "Not" as Not
+class "Or" as Or
+class "RuleParser" as RuleParser {
+  +Parse(json): ILogRule
+}
+class "SeverityAtLeast" as SeverityAtLeast
+class "DuplicateKey" as DuplicateKey <<other page>>
+class "DuplicateKeyVisitor" as DuplicateKeyVisitor <<other page>>
+interface "ISeverityCatalog" as ISeverityCatalog <<other page>>
+And --> ILogRule : _children
+CompositeRuleFilter --> ILogRule : _rule
+DuplicateLogFilter --> DuplicateKey : _seen
+DuplicateLogFilter --> DuplicateKeyVisitor : _keyVisitor
+FilterChain --> LogFilter : _first
+ILogRule <|.. And
+ILogRule <|.. MessageContains
+ILogRule <|.. Not
+ILogRule <|.. Or
+ILogRule <|.. SeverityAtLeast
+LogFilter <|-- AgeLogFilter
+LogFilter <|-- CompositeRuleFilter
+LogFilter <|-- DuplicateLogFilter
+LogFilter <|-- SeverityLogFilter
+Not --> ILogRule : _child
+Or --> ILogRule : _children
+RuleParser --> ISeverityCatalog : _catalog
+SeverityAtLeast --> ISeverityCatalog : _catalog
+SeverityLogFilter --> SeverityFilter : _predicate
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml
+
+@startuml 09_visitor_models
+title LogHub LR5 - visitor models
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+class "LogFormatter" as LogFormatter
+class "ExceptionLogEntry" as ExceptionLogEntry {
+  +Accept(visitor): void
+}
+abstract class "LogRecord" as LogRecord {
+  {abstract} +Accept(visitor): void
+}
+class "MetricLogEntry" as MetricLogEntry {
+  +Accept(visitor): void
+}
+class "SimpleLogEntry" as SimpleLogEntry {
+  +Accept(visitor): void
+}
+class "LogParser" as LogParser
+class "DuplicateKey" as DuplicateKey <<record>>
+class "DuplicateKeyVisitor" as DuplicateKeyVisitor
+interface "ILogEntryVisitor" as ILogEntryVisitor {
+  +Visit(SimpleLogEntry): void
+  +Visit(ExceptionLogEntry): void
+  +Visit(MetricLogEntry): void
+}
+class "StatisticsVisitor" as StatisticsVisitor
+DuplicateKeyVisitor --> DuplicateKey : Key
+ILogEntryVisitor <|.. DuplicateKeyVisitor
+ILogEntryVisitor <|.. LogFormatter
+ILogEntryVisitor <|.. StatisticsVisitor
+LogRecord <|-- ExceptionLogEntry
+LogRecord <|-- MetricLogEntry
+LogRecord <|-- SimpleLogEntry
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml
+
+@startuml 10_observers
+title LogHub LR5 - observers
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+class "CriticalAlertObserver" as CriticalAlertObserver
+abstract class "LogObserver" as LogObserver
+class "ProcessedLog" as ProcessedLog <<record>>
+class "ObserverFailure" as ObserverFailure <<record>>
+interface "IPushLogObserver" as IPushLogObserver
+interface "IPullLogObserver" as IPullLogObserver
+interface "IPullLogSource" as IPullLogSource
+class "PipelineEvents" as PipelineEvents {
+  +Publish(item): void
+  +SubscribePush(observer): IDisposable
+  +SubscribePull(observer): IDisposable
+  +ReportFailure(observer, error): void
+}
+class "PipelineEvents.Subscription" as Subscription
+class "PipelineSubscriptions" as PipelineSubscriptions
+class "ProcessedCounterObserver" as ProcessedCounterObserver
+class "SinkObserver<TSink>" as SinkObserver
+IPullLogObserver <|.. LogObserver
+IPullLogSource <|.. PipelineEvents
+IPushLogObserver <|.. LogObserver
+LogObserver <|-- CriticalAlertObserver
+LogObserver <|-- ProcessedCounterObserver
+LogObserver <|-- SinkObserver
+PipelineEvents --> ObserverFailure : Failures
+PipelineEvents --> ObserverFailure : _failures
+PipelineEvents --> ProcessedLog : Current
+PipelineEvents --> Subscription : _subscriptions
+PipelineSubscriptions --> LogObserver : _observers
+Subscription --> PipelineEvents : _owner
+Subscription --> ProcessedLog : _callback
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml
+
+@startuml 11_processing_mediator
+title LogHub LR5 - processing mediator
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+class "LogFlowMediator" as LogFlowMediator {
+  +Run(): ProcessingResult
+  +ChangeImporter(importer): void
+}
+class "LogProcessor" as LogProcessor
+class "PipelineReport" as PipelineReport
+class "ProcessingPipeline" as ProcessingPipeline {
+  +Enqueue(item): void
+  +Drain(): void
+  +PressureChanged: event
+}
+class "ProcessingResult" as ProcessingResult <<record>>
+class "CriticalAlertObserver" as CriticalAlertObserver <<other page>>
+class "FilterChain" as FilterChain <<other page>>
+class "ImportItem" as ImportItem <<other page>>
+class "ImportSession" as ImportSession <<other page>>
+class "LogFormatter" as LogFormatter <<other page>>
+class "PipelineEvents" as PipelineEvents <<other page>>
+class "PipelineSubscriptions" as PipelineSubscriptions <<other page>>
+class "ProcessedCounterObserver" as ProcessedCounterObserver <<other page>>
+class "StatisticsVisitor" as StatisticsVisitor <<other page>>
+LogFlowMediator --> ImportSession : _importer
+LogFlowMediator --> ProcessingPipeline : _pipeline
+LogProcessor --> LogFlowMediator : _mediator
+PipelineReport --> CriticalAlertObserver : _alerts
+PipelineReport --> LogFlowMediator : _mediator
+PipelineReport --> PipelineEvents : _events
+PipelineReport --> ProcessedCounterObserver : _counter
+PipelineReport --> StatisticsVisitor : _statistics
+ProcessingPipeline --> FilterChain : _chain
+ProcessingPipeline --> ImportItem : _buffer
+ProcessingPipeline --> LogFormatter : _formatter
+ProcessingPipeline --> PipelineEvents : _events
+ProcessingPipeline --> PipelineSubscriptions : _subscriptions
+ProcessingPipeline --> ProcessingResult : Result
+ProcessingPipeline --> StatisticsVisitor : _statistics
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml
+
+@startuml 12_graphs_legacy_sinks
+title LogHub LR5 - graphs legacy sinks
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+class "BreadthFirstEnumerator" as BreadthFirstEnumerator
+class "DependencyGraph" as DependencyGraph
+class "DepthFirstEnumerator" as DepthFirstEnumerator
+class "GraphDemo" as GraphDemo
+class "ManualTraversal" as ManualTraversal
+class "Node" as Node <<record>>
+class "ConsoleLogSink" as ConsoleLogSink
+class "DatabaseLogSink" as DatabaseLogSink
+class "FileLogSink" as FileLogSink
+interface "ILogSink" as ILogSink {
+  +Name: string
+  +Write(record, text): void
+  +Dispose(): void
+}
+class "LogSinkFactory" as LogSinkFactory <<static>>
+class "SinkNameAttribute" as SinkNameAttribute
+BreadthFirstEnumerator --> DependencyGraph : _graph
+BreadthFirstEnumerator --> Node : Current
+BreadthFirstEnumerator --> Node : _current
+BreadthFirstEnumerator --> Node : _pending
+BreadthFirstEnumerator --> Node : _root
+BreadthFirstEnumerator --> Node : _visited
+DependencyGraph --> Node : Nodes
+DependencyGraph --> Node : _edges
+DependencyGraph --> Node : _nodes
+DepthFirstEnumerator --> DependencyGraph : _graph
+DepthFirstEnumerator --> Node : Current
+DepthFirstEnumerator --> Node : _current
+DepthFirstEnumerator --> Node : _pending
+DepthFirstEnumerator --> Node : _root
+DepthFirstEnumerator --> Node : _visited
+GraphDemo --> DependencyGraph : _cyclicExample
+GraphDemo --> DependencyGraph : _services
+GraphDemo --> Node : _root
+ILogSink <|.. ConsoleLogSink
+ILogSink <|.. DatabaseLogSink
+ILogSink <|.. FileLogSink
+ManualTraversal --> DependencyGraph : _graph
+ManualTraversal --> Node : _root
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml

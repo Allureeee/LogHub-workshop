@@ -1,0 +1,57 @@
+@startuml "external_adapters"
+title LogHub LR5 - external adapters
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+class "JsonClassAdapter" as JsonClassAdapter
+class "JsonObjectAdapter" as JsonObjectAdapter
+class "SqlClassAdapter" as SqlClassAdapter
+class "SqlObjectAdapter" as SqlObjectAdapter
+interface "IDocumentChannel" as IDocumentChannel {
+  +Send(document): void
+  +Dispose(): void
+}
+interface "ISqlSession" as ISqlSession {
+  +Open(): void
+  +Save(date, severity, message): void
+  +Dispose(): void
+}
+class "JsonLogApi" as JsonLogApi {
+  +Push(document): void
+  +Dispose(): void
+}
+class "SqlLogApi" as SqlLogApi {
+  +Save(date, severity, message): void
+  +Dispose(): void
+}
+interface "IHubResources" as IHubResources
+class "JsonFileChannel" as JsonFileChannel
+class "PhysicalHubResources" as PhysicalHubResources
+class "SqliteLogSession" as SqliteLogSession
+interface "ILogSink" as ILogSink <<other page>>
+interface "ISeverityCatalog" as ISeverityCatalog <<other page>>
+class "LogFormatter" as LogFormatter <<other page>>
+IDocumentChannel <|.. JsonFileChannel
+IHubResources <|.. PhysicalHubResources
+ILogSink <|.. JsonClassAdapter
+ILogSink <|.. JsonObjectAdapter
+ILogSink <|.. SqlClassAdapter
+ILogSink <|.. SqlObjectAdapter
+ISqlSession <|.. SqliteLogSession
+JsonClassAdapter --> LogFormatter : _formatter
+JsonLogApi --> IDocumentChannel : _channel
+JsonLogApi <|-- JsonClassAdapter
+JsonObjectAdapter --> JsonLogApi : _api
+JsonObjectAdapter --> LogFormatter : _formatter
+SqlClassAdapter --> ISeverityCatalog : _severities
+SqlLogApi --> ISqlSession : _session
+SqlLogApi <|-- SqlClassAdapter
+SqlObjectAdapter --> ISeverityCatalog : _severities
+SqlObjectAdapter --> SqlLogApi : _api
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml

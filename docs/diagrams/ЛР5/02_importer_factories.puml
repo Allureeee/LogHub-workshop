@@ -1,0 +1,52 @@
+@startuml "importer_factories"
+title LogHub LR5 - importer factories
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+class "ImporterFactoryRegistry" as ImporterFactoryRegistry {
+  +Get(name): LogImporterFactory
+}
+class "JsonImporterFactory" as JsonImporterFactory
+abstract class "LogImporterFactory" as LogImporterFactory {
+  +Name: string
+  {abstract} +Create(source, parser): ILogImporter
+}
+class "MemoryImporterFactory" as MemoryImporterFactory
+class "MixedImporterFactory" as MixedImporterFactory
+interface "ILogImporter" as ILogImporter
+class "ImportItem" as ImportItem <<record>>
+class "ImportSession" as ImportSession
+class "InMemoryLogImporter" as InMemoryLogImporter
+class "JsonLogImporter" as JsonLogImporter
+abstract class "LogImporterBase" as LogImporterBase
+class "MixedLogImporter" as MixedLogImporter
+class "FileTextSource" as FileTextSource
+interface "ITextSource" as ITextSource
+class "InMemoryTextSource" as InMemoryTextSource
+class "LogParser" as LogParser <<other page>>
+ILogImporter <|.. LogImporterBase
+ITextSource <|.. FileTextSource
+ITextSource <|.. InMemoryTextSource
+ImportSession --> ILogImporter : _strategy
+ImportSession --> ImportItem : _iterator
+ImporterFactoryRegistry --> LogImporterFactory : _factories
+InMemoryLogImporter --> LogParser : _parser
+JsonLogImporter --> LogParser : _parser
+LogImporterBase --> ITextSource : _source
+LogImporterBase <|-- InMemoryLogImporter
+LogImporterBase <|-- JsonLogImporter
+LogImporterBase <|-- MixedLogImporter
+LogImporterFactory <|-- JsonImporterFactory
+LogImporterFactory <|-- MemoryImporterFactory
+LogImporterFactory <|-- MixedImporterFactory
+MixedLogImporter --> LogParser : _parser
+MixedImporterFactory ..> MixedLogImporter : creates
+JsonImporterFactory ..> JsonLogImporter : creates
+MemoryImporterFactory ..> InMemoryLogImporter : creates
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml

@@ -1,0 +1,48 @@
+@startuml "processing_mediator"
+title LogHub LR5 - processing mediator
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+class "LogFlowMediator" as LogFlowMediator {
+  +Run(): ProcessingResult
+  +ChangeImporter(importer): void
+}
+class "LogProcessor" as LogProcessor
+class "PipelineReport" as PipelineReport
+class "ProcessingPipeline" as ProcessingPipeline {
+  +Enqueue(item): void
+  +Drain(): void
+  +PressureChanged: event
+}
+class "ProcessingResult" as ProcessingResult <<record>>
+class "CriticalAlertObserver" as CriticalAlertObserver <<other page>>
+class "FilterChain" as FilterChain <<other page>>
+class "ImportItem" as ImportItem <<other page>>
+class "ImportSession" as ImportSession <<other page>>
+class "LogFormatter" as LogFormatter <<other page>>
+class "PipelineEvents" as PipelineEvents <<other page>>
+class "PipelineSubscriptions" as PipelineSubscriptions <<other page>>
+class "ProcessedCounterObserver" as ProcessedCounterObserver <<other page>>
+class "StatisticsVisitor" as StatisticsVisitor <<other page>>
+LogFlowMediator --> ImportSession : _importer
+LogFlowMediator --> ProcessingPipeline : _pipeline
+LogProcessor --> LogFlowMediator : _mediator
+PipelineReport --> CriticalAlertObserver : _alerts
+PipelineReport --> LogFlowMediator : _mediator
+PipelineReport --> PipelineEvents : _events
+PipelineReport --> ProcessedCounterObserver : _counter
+PipelineReport --> StatisticsVisitor : _statistics
+ProcessingPipeline --> FilterChain : _chain
+ProcessingPipeline --> ImportItem : _buffer
+ProcessingPipeline --> LogFormatter : _formatter
+ProcessingPipeline --> PipelineEvents : _events
+ProcessingPipeline --> PipelineSubscriptions : _subscriptions
+ProcessingPipeline --> ProcessingResult : Result
+ProcessingPipeline --> StatisticsVisitor : _statistics
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml

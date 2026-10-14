@@ -1,0 +1,42 @@
+@startuml "observers"
+title LogHub LR5 - observers
+left to right direction
+skinparam classAttributeIconSize 0
+hide empty members
+class "CriticalAlertObserver" as CriticalAlertObserver
+abstract class "LogObserver" as LogObserver
+class "ProcessedLog" as ProcessedLog <<record>>
+class "ObserverFailure" as ObserverFailure <<record>>
+interface "IPushLogObserver" as IPushLogObserver
+interface "IPullLogObserver" as IPullLogObserver
+interface "IPullLogSource" as IPullLogSource
+class "PipelineEvents" as PipelineEvents {
+  +Publish(item): void
+  +SubscribePush(observer): IDisposable
+  +SubscribePull(observer): IDisposable
+  +ReportFailure(observer, error): void
+}
+class "PipelineEvents.Subscription" as Subscription
+class "PipelineSubscriptions" as PipelineSubscriptions
+class "ProcessedCounterObserver" as ProcessedCounterObserver
+class "SinkObserver<TSink>" as SinkObserver
+IPullLogObserver <|.. LogObserver
+IPullLogSource <|.. PipelineEvents
+IPushLogObserver <|.. LogObserver
+LogObserver <|-- CriticalAlertObserver
+LogObserver <|-- ProcessedCounterObserver
+LogObserver <|-- SinkObserver
+PipelineEvents --> ObserverFailure : Failures
+PipelineEvents --> ObserverFailure : _failures
+PipelineEvents --> ProcessedLog : Current
+PipelineEvents --> Subscription : _subscriptions
+PipelineSubscriptions --> LogObserver : _observers
+Subscription --> PipelineEvents : _owner
+Subscription --> ProcessedLog : _callback
+legend bottom
+Solid arrow: stored field/property reference.
+Dotted arrow: creation or temporary use.
+Triangle: inheritance or interface implementation.
+Other-page nodes are detailed elsewhere in this atlas.
+endlegend
+@enduml
